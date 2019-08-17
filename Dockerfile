@@ -1,5 +1,5 @@
-FROM meedamian/simple-qemu-test:latest AS builder
-
+#FROM meedamian/simple-qemu-test:latest AS builder
+#
 #RUN apt-get update
 #RUN apt-get -y install git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev
 #
@@ -17,13 +17,10 @@ FROM meedamian/simple-qemu-test:latest AS builder
 #
 #RUN chmod +x /qemu-binfmt-conf.sh /register.sh
 
-
-RUN /register.sh --debian
-
 FROM arm32v6/alpine
 
-COPY --from=builder /qemu-arm-static /usr/bin/
-COPY --from=builder /qemu-binfmt-conf.sh /
-COPY --from=builder /register.sh /
+COPY --from=meedamian/simple-qemu-test:latest /qemu-arm-static /usr/bin/
+COPY --from=meedamian/simple-qemu-test:latest /qemu-binfmt-conf.sh /
+COPY --from=meedamian/simple-qemu-test:latest /register.sh /
 
-RUN /usr/bin/qemu-arm-static /register.sh
+RUN /usr/bin/qemu-arm-static /qemu-binfmt-conf.sh --qemu-suffix "-static" --qemu-path /usr/bin/  "$@"
