@@ -17,7 +17,8 @@ COPY register.sh /register.sh
 
 RUN chmod +x /qemu-binfmt-conf.sh /register.sh
 
-RUN /register.sh
+RUN /register.sh --debian
+
 
 FROM arm32v6/alpine
 
