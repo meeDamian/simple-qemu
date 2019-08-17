@@ -23,7 +23,7 @@
 #COPY --from=meedamian/simple-qemu-test:latest /qemu-binfmt-conf.sh /
 #COPY --from=meedamian/simple-qemu-test:latest /register.sh /
 #
-#ENTRYPOINT ["/register"]
+#ENTRYPOINT ["/register.sh"]
 
 FROM arm32v6/alpine
 
