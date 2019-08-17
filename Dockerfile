@@ -15,7 +15,6 @@ RUN make
 RUN cp arm-linux-user/qemu-arm  /usr/bin/qemu-arm-static
 
 
-
 FROM arm32v6/alpine
 
 COPY --from=builder /usr/bin/qemu-arm-static /usr/bin/
