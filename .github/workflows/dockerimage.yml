@@ -10,6 +10,7 @@ jobs:
  
     steps:
     - uses: actions/checkout@v1
+    - uses: meeDamian/setup-qemu@master
     - name: Register a thing
       run: docker run --rm --privileged meedamian/simple-qemu-test:minimal --reset -p yes
     - name: Build the Docker image
