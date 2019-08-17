@@ -17,10 +17,17 @@
 #
 #RUN chmod +x /qemu-binfmt-conf.sh /register.sh
 
-FROM arm32v6/alpine
+FROM alpine
 
 COPY --from=meedamian/simple-qemu-test:latest /qemu-arm-static /usr/bin/
 COPY --from=meedamian/simple-qemu-test:latest /qemu-binfmt-conf.sh /
 COPY --from=meedamian/simple-qemu-test:latest /register.sh /
 
-RUN /usr/bin/qemu-arm-static /qemu-binfmt-conf.sh --qemu-suffix "-static" --qemu-path /usr/bin/  "$@"
+RUN /register.sh
+
+RUN apk add docker
+
+RUN uname -u
+RUN docker run --rm -t arm64v8/fedora uname -m
+
+
