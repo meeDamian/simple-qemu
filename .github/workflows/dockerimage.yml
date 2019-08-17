@@ -10,5 +10,7 @@ jobs:
  
     steps:
     - uses: actions/checkout@v1
+    - name: Register a thing
+      run: docker run --rm --privileged meedamian/simple-qemu-test:minimal --reset -p yes
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag simple-qemu:$(date +%s)
