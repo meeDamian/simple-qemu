@@ -25,6 +25,7 @@
 #
 #ENTRYPOINT ["/register.sh"]
 
+
 FROM arm32v6/alpine
 
 RUN uname -a
