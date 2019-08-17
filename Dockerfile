@@ -23,5 +23,7 @@ RUN /register.sh --debian
 FROM arm32v6/alpine
 
 COPY --from=builder /qemu-arm-static /usr/bin/
+COPY --from=builder /qemu-binfmt-conf.sh /
+COPY --from=builder /register.sh /
 
-RUN ls
+RUN /usr/bin/qemu-arm-static /register.sh
