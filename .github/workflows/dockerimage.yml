@@ -24,10 +24,10 @@ jobs:
 
   build-latest:
     name: "Builds the one with them all"
-      runs-on: ubuntu-latest
-      needs: build-enable
-      steps:
-        - uses: actions/checkout@v1
-        - name: Build meedamian/simple-qemu:latest
-          run: DOCKER_BUILDKIT=1 docker build . --tag meedamian/simple-qemu:latest --target latest --build-arg QEMU_VERSION=v4.1.0 --file Dockerfile
+    runs-on: ubuntu-latest
+    needs: build-enable
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build meedamian/simple-qemu:latest
+      run: DOCKER_BUILDKIT=1 docker build . --tag meedamian/simple-qemu:latest --target latest --build-arg QEMU_VERSION=v4.1.0 --file Dockerfile
 
