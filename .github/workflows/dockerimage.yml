@@ -68,7 +68,6 @@ jobs:
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
-        --build-arg TARGETS=$(cat ./built-architectures.txt | xargs -I{} echo "{}-linux-user") \
         --tag       ${GITHUB_REPOSITORY,,}:latest
         --file      Dockerfile
         --target    latest
