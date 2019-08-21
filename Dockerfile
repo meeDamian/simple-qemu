@@ -9,15 +9,33 @@ RUN apt-get update && \
 ARG QEMU_VERSION
 RUN test ! -z "${QEMU_VERSION}"  || (echo "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
 
+# Import keys used to verify git tag later. All keys taken from: https://wiki.qemu.org/SecurityProcess
+RUN set -ex \
+  && for key in \
+    0270606B6F3CDF3D0B170970C3503912AFBE8E67 \
+    8107AF16A416F9AF18F3D8743E786F42C44977CA \
+    D04E33ABA51F67BA07D30AEA894F8F4870E1AE90 \
+    77E79ABE93673533ED09EBE2DCE3823597F5EAC4 \
+    CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
+    47AFCE693A9054AA90451053DD133D32FE5B041F \
+  ; do \
+    gpg --keyserver pgp.mit.edu --recv-keys "${key}" || \
+    gpg --keyserver keyserver.pgp.com --recv-keys "${key}" || \
+    gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "${key}" || \
+    gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "${key}" ; \
+  done
+
+RUN gpg --list-keys
+
 # Fetch a minimal source clone of the specified qemu version
-#  Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
+#   Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
+#   For future reference, this is qemu download index: https://download.qemu.org/
 RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
 WORKDIR qemu/
 
-# Not sure if that actually does anything useful, but downloading tar & signature from the same source seems pointless too.
-#   For future reference, this is qemu download index: https://download.qemu.org/
+# Verify that pulled release has been signed by any of the keys imported above
 RUN git verify-tag ${QEMU_VERSION}
 
 # Capture `TARGETS` that can optionally be passed to `docker build` via `--build-arg`.
