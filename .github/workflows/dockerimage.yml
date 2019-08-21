@@ -1,65 +1,71 @@
 name: Build & test qemu
 on: push
 jobs:
-  build:
-    name: Builds all images
-    runs-on: ubuntu-latest
+  one:
+    runs-on: ubuntu-16.04
     steps:
-    - uses: actions/checkout@v1
-    - name: Build base image
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --file      Dockerfile
-        --target    builder
-
-    - name: Build :enable
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY,,}:enable
-        --file      Dockerfile
-        --target    enable
-
-    - name: Build :<single-arch>
-      run: |
-        for arch in arm aarch64 riscv32 riscv64; do
-          DOCKER_BUILDKIT=1 docker build . \
-            --build-arg QEMU_VERSION=v4.1.0 \
-            --build-arg ARCH=${arch} \
-            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
-            --file      Dockerfile \
-            --target    single
-        done
-
-    - name: Build :latest
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY,,}:latest
-        --file      Dockerfile
-        --target    latest
-
-    - name: List all
-      run: docker images ${GITHUB_REPOSITORY,,}
-
-#  build-singles:
-#    name: "Builds single-arch: ${{ matrix.arch }}"
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Dump strategy context
+        env:
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        run: echo "$STRATEGY_CONTEXT"
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+#  build:
+#    name: Builds all images
 #    runs-on: ubuntu-latest
-#    needs: build-enable
-#    strategy:
-#      matrix:
-#        arch: [arm, aarch64, riscv32, riscv64]
 #    steps:
 #    - uses: actions/checkout@v1
-#    - run: DOCKER_BUILDKIT=1 docker build . --tag meedamian/simple-qemu:${{ matrix.arch }} --target single --build-arg QEMU_VERSION=v4.1.0 --build-arg ARCH=${{ matrix.arch }} --file Dockerfile
+#    - name: Build base image
+#      run: >
+#        DOCKER_BUILDKIT=1 docker build .
+#        --build-arg QEMU_VERSION=v4.1.0
+#        --file      Dockerfile
+#        --target    builder
 #
-#  build-latest:
-#    name: "Builds the one with them all"
-#    runs-on: ubuntu-latest
-#    needs: build-enable
-#    steps:
-#    - uses: actions/checkout@v1
-#    - name: Build meedamian/simple-qemu:latest
-#      run: DOCKER_BUILDKIT=1 docker build . --tag meedamian/simple-qemu:latest --target latest --build-arg QEMU_VERSION=v4.1.0 --file Dockerfile
+#    - name: Build :enable
+#      run: >
+#        DOCKER_BUILDKIT=1 docker build .
+#        --build-arg QEMU_VERSION=v4.1.0
+#        --tag       ${GITHUB_REPOSITORY,,}:enable
+#        --file      Dockerfile
+#        --target    enable
 #
+#    - name: Build :<single-arch>
+#      run: |
+#        for arch in arm aarch64 riscv32 riscv64; do
+#          DOCKER_BUILDKIT=1 docker build . \
+#            --build-arg QEMU_VERSION=v4.1.0 \
+#            --build-arg ARCH=${arch} \
+#            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
+#            --file      Dockerfile \
+#            --target    single
+#        done
+#
+#    - name: Build :latest
+#      run: >
+#        DOCKER_BUILDKIT=1 docker build .
+#        --build-arg QEMU_VERSION=v4.1.0
+#        --tag       ${GITHUB_REPOSITORY,,}:latest
+#        --file      Dockerfile
+#        --target    latest
+#
+#    - name: List all
+#      run: docker images ${GITHUB_REPOSITORY,,}
