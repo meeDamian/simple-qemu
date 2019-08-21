@@ -6,35 +6,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Builds meedamian/simple-qemu:enable
+    - name: Builds base image
       run: >
         DOCKER_BUILDKIT=1 docker build .
-        --tag       meedamian/simple-qemu:enable
-        --target    builder
         --build-arg QEMU_VERSION=v4.1.0
         --file      Dockerfile
+        --target    builder
 
-    - name: Builds meedamian/simple-qemu:<single-arch>
+    - name: "Builds ${GITHUB_REPOSITORY}:enable"
+      run: >
+        DOCKER_BUILDKIT=1 docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --tag       ${GITHUB_REPOSITORY}:enable
+        --file      Dockerfile
+        --target    enable
+
+    - name: "Builds ${GITHUB_REPOSITORY}:<single-arch>"
       run: |
         for arch in arm aarch64 riscv32 riscv64; do
           DOCKER_BUILDKIT=1 docker build . \
-            --tag       meedamian/simple-qemu:${arch} \
-            --target    single \
             --build-arg QEMU_VERSION=v4.1.0 \
             --build-arg ARCH=${arch} \
-            --file      Dockerfile
+            --tag       ${GITHUB_REPOSITORY}:${arch} \
+            --file      Dockerfile \
+            --target    single
         done
 
-    - name: Builds meedamian/simple-qemu:latest
+    - name: "Builds ${GITHUB_REPOSITORY}:latest"
       run: >
         DOCKER_BUILDKIT=1 docker build .
-        --tag       meedamian/simple-qemu:latest
-        --target    latest
         --build-arg QEMU_VERSION=v4.1.0
+        --tag       ${GITHUB_REPOSITORY}:latest
         --file      Dockerfile
+        --target    latest
 
-    - name: Lists all available images
-      run: docker images
+    - name: Lists all built images
+      run: docker images ${GITHUB_REPOSITORY}
 
 #  build-singles:
 #    name: "Builds single-arch: ${{ matrix.arch }}"
