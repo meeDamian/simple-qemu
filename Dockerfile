@@ -2,7 +2,7 @@ FROM debian:10-slim AS builder
 
 # Install deps
 RUN apt-get update && \
-    apt-get -y install git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev
+    apt-get -y install git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
 
 # Capture `QEMU_VERSION=` passed to `docker build` via `--build-arg`.
 #   If version is not provided, exit - we don't want to build some random binary.
