@@ -53,8 +53,6 @@ RUN for arch in $(cat /built-architectures.txt); do \
         cp "/qemu/${arch}-linux-user/qemu-${arch}" "/qemu-${arch}-static"; \
     done
 
-RUN ls -lh /qemu-*-static
-
 
 ## What follows here is 3 different Dockerfile stages used to build 3 different Docker images
 #

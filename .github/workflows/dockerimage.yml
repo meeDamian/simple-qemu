@@ -5,30 +5,30 @@ jobs:
     name: test speed of old docker build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Remove fluff from built-architectures.txt
-        run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
-      - name: Build base image
-        run: >
-          docker build .
-          --build-arg QEMU_VERSION=v4.1.0
-          --build-arg ARCH=arm
-          --file      Dockerfile
+    - uses: actions/checkout@v1
+    - name: Remove fluff from built-architectures.txt
+      run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
+    - name: Build base image
+      run: >
+        docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --build-arg ARCH=arm
+        --file      Dockerfile
 
   new:
     name: test speed of new docker build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Remove fluff from built-architectures.txt
-        run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
-      - name: Build base image
-        run: >
-          DOCKER_BUILDKIT=1 docker build .
-          --build-arg QEMU_VERSION=v4.1.0
-          --build-arg ARCH=arm
-          --file      Dockerfile
-          --target    single
+    - uses: actions/checkout@v1
+    - name: Remove fluff from built-architectures.txt
+      run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
+    - name: Build base image
+      run: >
+        DOCKER_BUILDKIT=1 docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --build-arg ARCH=arm
+        --file      Dockerfile
+        --target    single
 
   build:
     name: Builds all images
