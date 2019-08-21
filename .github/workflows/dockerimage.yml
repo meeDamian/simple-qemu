@@ -6,42 +6,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Builds base image
+    - name: Build base image
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
         --file      Dockerfile
         --target    builder
 
-    - name: "Builds ${GITHUB_REPOSITORY}:enable"
+    - name: Build :enable
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY}:enable
+        --tag       ${GITHUB_REPOSITORY,,}:enable
         --file      Dockerfile
         --target    enable
 
-    - name: "Builds ${GITHUB_REPOSITORY}:<single-arch>"
+    - name: Build :<single-arch>
       run: |
         for arch in arm aarch64 riscv32 riscv64; do
           DOCKER_BUILDKIT=1 docker build . \
             --build-arg QEMU_VERSION=v4.1.0 \
             --build-arg ARCH=${arch} \
-            --tag       ${GITHUB_REPOSITORY}:${arch} \
+            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
             --file      Dockerfile \
             --target    single
         done
 
-    - name: "Builds ${GITHUB_REPOSITORY}:latest"
+    - name: Build :latest
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY}:latest
+        --tag       ${GITHUB_REPOSITORY,,}:latest
         --file      Dockerfile
         --target    latest
 
-    - name: Lists all built images
-      run: docker images ${GITHUB_REPOSITORY}
+    - name: List all
+      run: docker images ${GITHUB_REPOSITORY,,}
 
 #  build-singles:
 #    name: "Builds single-arch: ${{ matrix.arch }}"
