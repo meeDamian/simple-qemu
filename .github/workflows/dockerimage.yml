@@ -49,7 +49,7 @@ jobs:
   docker-hub:
     name: Performs meta stuff
     runs-on: ubuntu-latest
-    needs: build
+#    needs: build
     steps:
     - uses: actions/checkout@v1
 #   # NOTE: Does not work until https://github.com/peter-evans/dockerhub-description/issues/1 is addressed
