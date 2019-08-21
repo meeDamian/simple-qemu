@@ -59,7 +59,7 @@ jobs:
 #        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USER }}
 #        DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASS }}
 #        DOCKERHUB_REPOSITORY: ${GITHUB_REPOSITORY,,}
-    - uses: ./sync-readme
+    - uses: ./.github/sync-readme
       with:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
