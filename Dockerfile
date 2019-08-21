@@ -2,12 +2,12 @@ FROM debian:10-slim AS builder
 
 # Install deps
 RUN apt-get update && \
-    apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
+    apt-get -y install --no-install-recommends gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
 
 # Capture `QEMU_VERSION=` passed to `docker build` via `--build-arg`.
 #   If version is not provided, exit - we don't want to build some random binary.
 ARG QEMU_VERSION
-RUN test ! -z "${QEMU_VERSION}"  || (echo "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
+RUN test ! -z "${QEMU_VERSION}"  || (printf "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
 
 # Import keys used to verify git tag later.  Used keys obtained using:
 #   git tag | xargs -I{} git verify-tag {} 2>&1 | grep 'Primary key fingerprint' | cut -d: -f 2 | tr -d ' ' | sort | uniq -c | sort -rh
@@ -32,7 +32,7 @@ RUN gpg --list-keys
 RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
-WORKDIR qemu/
+WORKDIR /qemu/
 
 # Verify that pulled release has been signed by any of the keys imported above
 RUN git verify-tag ${QEMU_VERSION}
@@ -53,7 +53,7 @@ RUN make
 #
 # In essense this line takes binaries in the build path, renames them, and copies to `/`, ex:
 #    `./arm-linux-user/qemu-arm`  becomes  `/qemu-arm-static`
-RUN IFS=, ; for target in ${TARGETS}; do ARCH=$(printf "%s" "${target%%-*}"); cp ./${ARCH}-linux-user/qemu-${ARCH} /qemu-${ARCH}-static; done
+RUN IFS=, ; for target in ${TARGETS}; do ARCH=$(printf "%s" "${target%%-*}"); cp "./${ARCH}-linux-user/qemu-${ARCH}" "/qemu-${ARCH}-static"; done
 
 RUN ls -lha /qemu-*-static
 
@@ -65,7 +65,7 @@ RUN ls -lha /qemu-*-static
 ## 1. This image has no `qemu` binaries embeded in it.  It can be used to register/enable qemu on the host system,
 #   as well as allows for interactions with qemu provided `qemu-binfmt-conf.sh` script.
 #   See more: https://github.com/qemu/qemu/blob/6894576347a71cdf7a1638650ccf3378cfa2a22d/scripts/qemu-binfmt-conf.sh#L168-L211
-FROM busybox AS enable
+FROM busybox:1.31 AS enable
 
 # Copy the `enable.sh` script to the image
 COPY enable.sh /
@@ -97,7 +97,7 @@ FROM enable AS single
 ARG ARCH
 
 # Make sure that exactly one target is provided to TARGETS=
-RUN test ! -z "${ARCH}" || (echo "\nExactly one target has to be provided in TARGETS=\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg TARGETS=arm-linux-user .\n" && exit 1)
+RUN test ! -z "${ARCH}" || (printf "\nExactly one target has to be provided in TARGETS=\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg TARGETS=arm-linux-user .\n" && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
 COPY --from=builder  /qemu-${ARCH}-static  /
