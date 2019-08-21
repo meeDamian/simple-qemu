@@ -43,6 +43,7 @@ jobs:
     - name: List all
       run: docker images ${GITHUB_REPOSITORY,,}
 
+# NOTE: Doesn't work until https://github.com/peter-evans/dockerhub-description/issues/1 is addressed
 #  docker-hub:
 #    name: Performs meta stuff
 #    runs-on: ubuntu-latest
