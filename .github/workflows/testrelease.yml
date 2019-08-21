@@ -1,6 +1,7 @@
 name: test release
 on:
-  push: tags
+  push:
+    tags: true
 
 jobs:
   build:
