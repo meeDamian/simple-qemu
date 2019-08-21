@@ -47,7 +47,7 @@ jobs:
       run: docker images ${GITHUB_REPOSITORY,,}
 
     - name: Save all
-      run: mkdir -p q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} -o q/{}.docker
+      run: mkdir -p q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > {}.tgz
 
     - name: Upload
       uses: actions/upload-artifact@master
