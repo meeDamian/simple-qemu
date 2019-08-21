@@ -42,9 +42,6 @@ RUN git verify-tag ${QEMU_VERSION}
 #   Note: put it as far down as possible, so that stuff above doesn't get invalidated everytime this file changes
 COPY built-architectures.txt /
 
-# Delete comments, spaces, and empty lines from the file
-RUN grep -o '^[^#]*' /built-architectures.txt | awk NF | tr -d ' ' > /built-architectures.txt
-
 # Configure output binaries to rely on no external dependencies (static), and only build for specified architectures
 RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs -I{} echo "{}-linux-user" | tr '\n' ',' | head -c-1)
 
