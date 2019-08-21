@@ -1,6 +1,31 @@
 name: Build & test qemu
 on: push
 jobs:
+  old:
+    name: test speed of old docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build base image
+        run: >
+          docker build .
+          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg ARCH=arm
+          --file      Dockerfile
+
+  new:
+    name: test speed of new docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build base image
+        run: >
+          DOCKER_BUILDKIT=1 docker build .
+          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg ARCH=arm
+          --file      Dockerfile
+          --target    single
+
   build:
     name: Builds all images
     runs-on: ubuntu-latest
@@ -23,7 +48,7 @@ jobs:
 
     - name: Build :<single-arch>
       run: |
-        for arch in arm aarch64 riscv32 riscv64; do
+        for arch in $(cat built-architectures.txt); do
           DOCKER_BUILDKIT=1 docker build . \
             --build-arg QEMU_VERSION=v4.1.0 \
             --build-arg ARCH=${arch} \
@@ -36,6 +61,7 @@ jobs:
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
+        --build-arg TARGETS=$(cat built-architectures.txt | xargs -I{} echo "{}-linux-user") \
         --tag       ${GITHUB_REPOSITORY,,}:latest
         --file      Dockerfile
         --target    latest

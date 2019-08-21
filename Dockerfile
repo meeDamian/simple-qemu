@@ -2,12 +2,13 @@ FROM debian:10-slim AS builder
 
 # Install deps
 RUN apt-get update && \
-    apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
+    apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison && \
+    rm -rf /var/lib/apt/lists/*
 
 # Capture `QEMU_VERSION=` passed to `docker build` via `--build-arg`.
 #   If version is not provided, exit - we don't want to build some random binary.
 ARG QEMU_VERSION
-RUN test ! -z "${QEMU_VERSION}"  || (printf "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
+RUN test ! -z "${QEMU_VERSION}"  || (printf "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n\n" && exit 1)
 
 # Import keys used to verify git tag later.  Used keys obtained using:
 #   git tag | xargs -I{} git verify-tag {} 2>&1 | grep 'Primary key fingerprint' | cut -d: -f 2 | tr -d ' ' | sort | uniq -c | sort -rh
@@ -37,26 +38,25 @@ WORKDIR /qemu/
 # Verify that pulled release has been signed by any of the keys imported above
 RUN git verify-tag ${QEMU_VERSION}
 
-# Capture `TARGETS` that can optionally be passed to `docker build` via `--build-arg`.
-#   By default only the most popular architectures are built: arm, arm64, RICS-V & RISC-V 64-bit
-ARG TARGETS=arm-linux-user,aarch64-linux-user,riscv32-linux-user,riscv64-linux-user
+# Copy the list of all architectures we want to build into the container
+#   Note: put it as far down as possible, so that stuff above doesn't get invalidated everytime this file changes
+COPY built-architectures.txt /
 
-# Confogure it to be have no external dependencies (static), and only build for specified architectures
-RUN ./configure  --static  --target-list=${TARGETS}
+# Delete comments, spaces, and empty lines from the file
+RUN grep -o '^[^#]*' /built-architectures.txt | awk NF | tr -d ' ' > /built-architectures.txt
+
+# Configure output binaries to rely on no external dependencies (static), and only build for specified architectures
+RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs -I{} echo "{}-linux-user" | tr '\n' ',' | head -c-1)
 
 # make :)
 RUN make
 
-# Useful things to unpack here:
-#   IFS=,                       - sets comma (,) to be the separator in-between elements of ${TARGETS} for the _for_ loop
-#   printf "%s" "${target%%-*}" - takes one target (ex. `arm-linux-user`), and exracts from it the first part (`arm`)
-#
-# In essense this line takes binaries in the build path, renames them, and copies to `/`, ex:
-#    `./arm-linux-user/qemu-arm`  becomes  `/qemu-arm-static`
-RUN IFS=, ; for target in ${TARGETS}; do ARCH=$(printf "%s" "${target%%-*}"); cp "./${ARCH}-linux-user/qemu-${ARCH}" "/qemu-${ARCH}-static"; done
+# Copy and rename all built qemu binaries to root `/`
+RUN for arch in $(cat /built-architectures.txt); do \
+        cp "/qemu/${arch}-linux-user/qemu-${arch}" "/qemu-${arch}-static"; \
+    done
 
-RUN ls -lha /qemu-*-static
-
+RUN ls -lh /qemu-*-static
 
 
 ## What follows here is 3 different Dockerfile stages used to build 3 different Docker images
@@ -96,8 +96,8 @@ FROM enable AS single
 # Capture `ARCH` that has to be passed to container via `--build-arg`.
 ARG ARCH
 
-# Make sure that exactly one target is provided to TARGETS=
-RUN test ! -z "${ARCH}" || (printf "\nExactly one target has to be provided in TARGETS=\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg TARGETS=arm-linux-user .\n" && exit 1)
+# Make sure that exactly one architecture is provided to ARCH=
+RUN test ! -z "${ARCH}" || (printf "\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg ARCH=arm-linux-user .\n\n" && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
 COPY --from=builder  /qemu-${ARCH}-static  /
