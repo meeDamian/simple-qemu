@@ -1,5 +1,7 @@
 name: test release
-on: tag
+on:
+  push: tags
+
 jobs:
   build:
     name: does a thing
