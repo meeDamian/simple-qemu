@@ -9,15 +9,14 @@ RUN apt-get update && \
 ARG QEMU_VERSION
 RUN test ! -z "${QEMU_VERSION}"  || (echo "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
 
-# Import keys used to verify git tag later. All keys taken from: https://wiki.qemu.org/SecurityProcess
+# Import keys used to verify git tag later.  Used keys obtained using:
+#   git tag | xargs -I{} git verify-tag {} 2>&1 | grep 'Primary key fingerprint' | cut -d: -f 2 | tr -d ' ' | sort | uniq -c | sort -rh
 RUN set -ex \
   && for key in \
-    0270606B6F3CDF3D0B170970C3503912AFBE8E67 \
-    8107AF16A416F9AF18F3D8743E786F42C44977CA \
-    D04E33ABA51F67BA07D30AEA894F8F4870E1AE90 \
-    77E79ABE93673533ED09EBE2DCE3823597F5EAC4 \
+    E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
     CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
-    47AFCE693A9054AA90451053DD133D32FE5B041F \
+    16ACFD5FBD34880E584ECD2975E9CA927C18C076 \
+    8695A8BFD3F97CDAAC35775A9CA4ABB381AB73C8 \
   ; do \
     gpg --keyserver pgp.mit.edu --recv-keys "${key}" || \
     gpg --keyserver keyserver.pgp.com --recv-keys "${key}" || \
