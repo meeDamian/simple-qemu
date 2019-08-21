@@ -10,7 +10,8 @@ ARG QEMU_VERSION
 RUN test ! -z "${QEMU_VERSION}"  || (echo "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n" && exit 1)
 
 # Fetch a minimal source clone of the specified qemu version
-RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://github.com/qemu/qemu.git
+#  Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
+RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
 WORKDIR qemu/
