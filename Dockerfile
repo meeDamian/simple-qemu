@@ -29,7 +29,7 @@ RUN gpg --list-keys
 # Fetch a minimal source clone of the specified qemu version
 #   Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
 #   For future reference, this is qemu download index: https://download.qemu.org/
-RUN git clone  --recursive  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
+RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
 WORKDIR qemu/
