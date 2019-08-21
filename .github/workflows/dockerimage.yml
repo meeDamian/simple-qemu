@@ -47,13 +47,13 @@ jobs:
       run: docker images ${GITHUB_REPOSITORY,,}
 
     - name: Save all
-      run: mkdir -p q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > {}.tgz
+      run: mkdir -p /github/home/q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > /github/home/q/{}.tgz
 
     - name: Upload
       uses: actions/upload-artifact@master
       with:
         name: binaries
-        path: q/
+        path: /github/home/q/
 
 #  docker-hub:
 #    name: Performs meta stuff
