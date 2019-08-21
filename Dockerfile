@@ -13,12 +13,12 @@ RUN test ! -z "${QEMU_VERSION}"  || (echo "\nQemu version has to be provided\n\t
 #  Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
 RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
 
+# All building happens in this directory
+WORKDIR qemu/
+
 # Not sure if that actually does anything useful, but downloading tar & signature from the same source seems pointless too.
 #   For future reference, this is qemu download index: https://download.qemu.org/
 RUN git verify-tag ${QEMU_VERSION}
-
-# All building happens in this directory
-WORKDIR qemu/
 
 # Capture `TARGETS` that can optionally be passed to `docker build` via `--build-arg`.
 #   By default only the most popular architectures are built: arm, arm64, RICS-V & RISC-V 64-bit
