@@ -16,7 +16,7 @@ inputs:
 runs:
   using: 'docker'
   image: 'docker://busybox:latest'
-  entrypoint: ["bash", "--version"]
+  entrypoint: ls
 
 branding:
   color: 'green'
