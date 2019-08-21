@@ -8,54 +8,52 @@ jobs:
     - uses: actions/checkout@v1
     - name: Remove fluff from built-architectures.txt
       run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
-    - name: sss
-      run: pwd
 
-#    - name: Build base image
-#      run: >
-#        DOCKER_BUILDKIT=1 docker build .
-#        --build-arg QEMU_VERSION=v4.1.0
-#        --file      Dockerfile
-#        --target    builder
-#
-#    - name: Build :enable
-#      run: >
-#        DOCKER_BUILDKIT=1 docker build .
-#        --build-arg QEMU_VERSION=v4.1.0
-#        --tag       ${GITHUB_REPOSITORY,,}:enable
-#        --file      Dockerfile
-#        --target    enable
-#
-#    - name: Build :<single-arch>
-#      run: |
-#        for arch in $(cat built-architectures.txt); do
-#          DOCKER_BUILDKIT=1 docker build . \
-#            --build-arg QEMU_VERSION=v4.1.0 \
-#            --build-arg ARCH=${arch} \
-#            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
-#            --file      Dockerfile \
-#            --target    single
-#        done
-#
-#    - name: Build :latest
-#      run: >
-#        DOCKER_BUILDKIT=1 docker build .
-#        --build-arg QEMU_VERSION=v4.1.0
-#        --tag       ${GITHUB_REPOSITORY,,}:latest
-#        --file      Dockerfile
-#        --target    latest
-#
-#    - name: List all
-#      run: docker images ${GITHUB_REPOSITORY,,}
-#
-#    - name: Save all
-#      run: mkdir -p /github/home/q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > /github/home/q/{}.tgz
-#
-#    - name: Upload
-#      uses: actions/upload-artifact@master
-#      with:
-#        name: binaries
-#        path: /github/home/q/
+    - name: Build base image
+      run: >
+        DOCKER_BUILDKIT=1 docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --file      Dockerfile
+        --target    builder
+
+    - name: Build :enable
+      run: >
+        DOCKER_BUILDKIT=1 docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --tag       ${GITHUB_REPOSITORY,,}:enable
+        --file      Dockerfile
+        --target    enable
+
+    - name: Build :<single-arch>
+      run: |
+        for arch in $(cat built-architectures.txt); do
+          DOCKER_BUILDKIT=1 docker build . \
+            --build-arg QEMU_VERSION=v4.1.0 \
+            --build-arg ARCH=${arch} \
+            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
+            --file      Dockerfile \
+            --target    single
+        done
+
+    - name: Build :latest
+      run: >
+        DOCKER_BUILDKIT=1 docker build .
+        --build-arg QEMU_VERSION=v4.1.0
+        --tag       ${GITHUB_REPOSITORY,,}:latest
+        --file      Dockerfile
+        --target    latest
+
+    - name: List all
+      run: docker images ${GITHUB_REPOSITORY,,}
+
+    - name: Save all
+      run: mkdir -p /home/runner/work/simple-qemu/simple-qemu/q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > /home/runner/work/simple-qemu/simple-qemu/q/{}.tgz
+
+    - name: Upload
+      uses: actions/upload-artifact@master
+      with:
+        name: binaries
+        path: /home/runner/work/simple-qemu/simple-qemu/q/
 
 #  docker-hub:
 #    name: Performs meta stuff
