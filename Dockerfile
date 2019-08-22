@@ -10,22 +10,27 @@ RUN apt-get update && \
 ARG QEMU_VERSION
 RUN test ! -z "${QEMU_VERSION}"  || (printf "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n\n" && exit 1)
 
+# Temporarily change shell to bash, so that arrays can be used
+SHELL ["/bin/bash", "-c"]
+
 # Import keys used to verify git tag later.  Used keys obtained using:
 #   git tag | xargs -I{} git verify-tag {} 2>&1 | grep 'Primary key fingerprint' | cut -d: -f 2 | tr -d ' ' | sort | uniq -c | sort -rh
-RUN set -ex \
-  && for key in \
-    E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
-    CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
-    16ACFD5FBD34880E584ECD2975E9CA927C18C076 \
-    8695A8BFD3F97CDAAC35775A9CA4ABB381AB73C8 \
-  ; do \
-    gpg --keyserver pgp.mit.edu --recv-keys "${key}" || \
-    gpg --keyserver keyserver.pgp.com --recv-keys "${key}" || \
-    gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "${key}" || \
-    gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "${key}" ; \
-  done
+RUN KEYS=( \
+        E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
+        CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
+        16ACFD5FBD34880E584ECD2975E9CA927C18C076 \
+        8695A8BFD3F97CDAAC35775A9CA4ABB381AB73C8 \
+    ); \
+  (gpg --keyserver pgp.mit.edu --recv-keys ${KEYS[@]}; echo "pgp.mit.edu done") &  \
+  sleep 1s; \
+  (gpg --keyserver keyserver.pgp.com --recv-keys ${KEYS[@]}; echo "keyserver.pgp.com done") &  \
+  (gpg --keyserver ha.pool.sks-keyservers.net --recv-keys ${KEYS[@]}; echo "ha.pool.sks-keyservers.net") &  \
+  (gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys ${KEYS[@]}; echo "hkp://p80.pool.sks-keyservers.net:80") &  \
+  wait -n && \
+  gpg --list-keys
 
-RUN gpg --list-keys
+# Restore default shell
+SHELL ["/bin/sh", "-c"]
 
 # Fetch a minimal source clone of the specified qemu version
 #   Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
