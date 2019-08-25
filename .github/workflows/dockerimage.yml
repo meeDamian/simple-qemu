@@ -10,7 +10,7 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Remove fluff from built-architectures.txt
-      run: sed -i  -e 's/#.*$//'  -e '/^$/d'  ./built-architectures.txt
+      run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
     - name: Build base image
       run: >
