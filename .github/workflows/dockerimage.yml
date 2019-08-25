@@ -98,6 +98,11 @@ jobs:
     steps:
     - uses: actions/checkout@v1.0.0
 
+    - name: show me
+      run: |
+        env
+        ls -la 
+
     - name: Sync README.md and description with Docker Hub
       uses: meeDamian/sync-readme@v1.0.5
       with:
