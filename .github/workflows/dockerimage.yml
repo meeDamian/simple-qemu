@@ -6,10 +6,6 @@ jobs:
   build:
     name: Builds all images
     runs-on: ubuntu-latest
-    container:
-      env:
-        QEMU_VERSION: v4.1.0
-
     steps:
     - uses: actions/checkout@v1
 
@@ -19,7 +15,7 @@ jobs:
     - name: Build base image
       run: >
         DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=${QEMU_VERSION}
+        --build-arg QEMU_VERSION=v4.1.0
         --tag       _builder
         --file      Dockerfile
         --target    builder
