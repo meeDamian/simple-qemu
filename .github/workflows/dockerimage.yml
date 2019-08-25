@@ -10,7 +10,13 @@ jobs:
     - uses: actions/checkout@v1
 
     - name: Remove fluff from built-architectures.txt
-      run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
+      run: |
+        grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
+        ls -la
+        cat built-architectures.txt
+
+    - name: Next job
+      run: ls -la && cat built-architectures.txt
 
     - name: Build base image
       run: >
@@ -31,6 +37,7 @@ jobs:
     - name: Build :<single-arch>
       run: |
         for arch in $(cat built-architectures.txt); do
+          echo "${arch}"
           DOCKER_BUILDKIT=1 docker build . \
             --build-arg QEMU_VERSION=v4.1.0 \
             --build-arg ARCH=${arch} \
@@ -69,7 +76,7 @@ jobs:
 
     - name: Extract all built binaries from image
       run: |
-        ID=$(docker create "${GITHUB_REPOSITORY,,}:midstate")
+        ID=$(docker create midstate)
         docker cp  "${ID}:/binaries/"  binaries/
         docker rm "${ID}"
 
@@ -87,7 +94,7 @@ jobs:
 #    steps:
 ##    - uses: actions/checkout@v1
 #    - name: Sync README.md and description with Docker Hub
-#      uses: meeDamian/sync-readme@v1.0.4
+#      uses: meeDamian/sync-readme@v1.0.5
 #      with:
 #        pass: ${{ secrets.DOCKER_PASS }}
 #        description: true
