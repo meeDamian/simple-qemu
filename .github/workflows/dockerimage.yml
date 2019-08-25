@@ -1,18 +1,26 @@
-name: Build & test qemu
+name: Build & deploy qemu
+
 on: push
+
 jobs:
   build:
     name: Builds all images
     runs-on: ubuntu-latest
+    container:
+      env:
+        QEMU_VERSION: v4.1.0
+
     steps:
     - uses: actions/checkout@v1
+
     - name: Remove fluff from built-architectures.txt
       run: grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
 
     - name: Build base image
       run: >
         DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
+        --build-arg QEMU_VERSION=${QEMU_VERSION}
+        --tag       _builder
         --file      Dockerfile
         --target    builder
 
@@ -46,14 +54,34 @@ jobs:
     - name: List all
       run: docker images ${GITHUB_REPOSITORY,,}
 
-    - name: Save all
-      run: mkdir -p /home/runner/work/simple-qemu/simple-qemu/q/ && docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I{} docker save {} | gzip > /home/runner/work/simple-qemu/simple-qemu/q/{}.tgz
+    - name: Save all images
+      run: |
+        mkdir -p containers/
+        for container in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
+          docker save "${container}" | gzip > containers/${container}.tgz
+        done
 
-    - name: Upload
-      uses: actions/upload-artifact@master
+#        mkdir -p qqq/
+#        docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker save % | gzip > qqq/%.tgz
+
+    - name: Upload containers
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: containers
+        path: containers/
+
+    - name: Extract all built binaries from image
+      run: |
+        ID=$(docker create "${GITHUB_REPOSITORY,,}:_builder")
+        docker cp  "${ID}:/binaries/"  binaries/
+        docker rm "${ID}"
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v1.0.0
       with:
         name: binaries
-        path: /home/runner/work/simple-qemu/simple-qemu/q/
+        path: binaries/
+
 
 #  docker-hub:
 #    name: Performs meta stuff

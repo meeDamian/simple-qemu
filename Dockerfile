@@ -56,8 +56,9 @@ RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs 
 RUN make
 
 # Copy and rename all built qemu binaries to root `/`
-RUN for arch in $(cat /built-architectures.txt); do \
-        cp "/qemu/${arch}-linux-user/qemu-${arch}" "/qemu-${arch}-static"; \
+RUN mkdir /binaries/ && \
+    for arch in $(cat /built-architectures.txt); do \
+        cp  "/qemu/${arch}-linux-user/qemu-${arch}"  "/binaries/qemu-${arch}-static"; \
     done
 
 
@@ -86,7 +87,7 @@ ENTRYPOINT ["/enable.sh"]
 FROM enable AS latest
 
 # Copy, and bundle together all built qemu binaries
-COPY --from=builder  /qemu-*-static  /
+COPY --from=builder  /binaries/qemu-*-static  /
 
 ENTRYPOINT ["/enable.sh"]
 
@@ -102,7 +103,7 @@ ARG ARCH
 RUN test ! -z "${ARCH}" || (printf "\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg ARCH=arm-linux-user .\n\n" && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
-COPY --from=builder  /qemu-${ARCH}-static  /
+COPY --from=builder  /binaries/qemu-${ARCH}-static  /
 
 ENTRYPOINT ["/enable.sh"]
 
