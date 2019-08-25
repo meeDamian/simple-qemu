@@ -69,8 +69,9 @@ jobs:
       run: |
         mkdir -p binaries/
         ID=$(docker create midstate)
-        docker cp  "${ID}:/binaries/"  binaries/
+        docker cp  "${ID}:/binaries/"  .
         docker rm "${ID}"
+        gzip binaries/*
 
     - name: Upload built binaries
       uses: actions/upload-artifact@v1.0.0
