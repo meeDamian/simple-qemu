@@ -7,7 +7,7 @@ jobs:
     name: Builds all images & uploads them as build artifacts
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v1.0.0
 
     - name: Extract essence from built-architectures.txt
       run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
@@ -87,9 +87,7 @@ jobs:
     needs: build
     steps:
       - name: See what we have
-        run: |
-          docker images || true
-          ls -la
+        run: yes
 
 
   # TODO: add on-tag conditional
@@ -98,7 +96,8 @@ jobs:
     runs-on: ubuntu-18.04
     needs: build
     steps:
-#    - uses: actions/checkout@v1
+    - uses: actions/checkout@v1.0.0
+
     - name: Sync README.md and description with Docker Hub
       uses: meeDamian/sync-readme@v1.0.5
       with:
