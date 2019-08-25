@@ -11,12 +11,22 @@ jobs:
 
     - name: Remove fluff from built-architectures.txt
       run: |
-        grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
-        ls -la
+        echo "======================="
         cat built-architectures.txt
+        echo "======================="
+        cat ./built-architectures.txt
+        echo "======================="
+        grep -o '^[^#]*' ./built-architectures.txt | awk NF | tr -d ' ' > ./built-architectures.txt
+        echo "======================="
+        ls -la
+        echo "======================="
+        cat built-architectures.txt
+        echo "======================="
 
     - name: Next job
-      run: ls -la && cat built-architectures.txt
+      run: |
+        ls -la && cat built-architectures.txt
+        exit 1
 
     - name: Build base image
       run: >
