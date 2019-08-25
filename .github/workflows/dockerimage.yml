@@ -101,7 +101,7 @@ jobs:
     - name: show me
       run: |
         env
-        ls -la 
+        ls -la
 
     - name: Sync README.md and description with Docker Hub
       uses: meeDamian/sync-readme@v1.0.5

@@ -44,10 +44,10 @@ WORKDIR /qemu/
 RUN git verify-tag ${QEMU_VERSION}
 
 # Copy the list of all architectures we want to build into the container
-#   Note: put it as far down as possible, so that stuff above doesn't get invalidated everytime this file changes
+#   Note: put it as far down as possible, so that stuff above doesn't get invalidated when this file changes
 COPY built-architectures.txt /
 
-RUN cat /built-architectures.txt
+RUN echo "Target architectures to be built: $(cat /built-architectures.txt | tr '\n' ' ')"
 
 # Configure output binaries to rely on no external dependencies (static), and only build for specified architectures
 RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs -I{} echo "{}-linux-user" | tr '\n' ',' | head -c-1)
@@ -60,9 +60,9 @@ RUN mkdir /binaries/ && \
     for arch in $(cat /built-architectures.txt); do \
         cp  "/qemu/${arch}-linux-user/qemu-${arch}"  "/binaries/qemu-${arch}-static"; \
     done && \
-    ls -lh /binaries/ && \
+    du -sh /binaries/* && \
     strip /binaries/* && \
-    ls -lh /binaries/
+    du -sh /binaries/*
 
 
 
