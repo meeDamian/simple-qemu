@@ -4,8 +4,8 @@ on: push
 
 jobs:
   build:
-    name: Builds all images
-    runs-on: ubuntu-latest
+    name: Builds all images & uploads them as build artifacts
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
 
