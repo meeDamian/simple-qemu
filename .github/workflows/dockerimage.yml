@@ -87,7 +87,7 @@ jobs:
     needs: build
     steps:
       - name: See what we have
-        run: yes
+        run: true
 
 
   # TODO: add on-tag conditional
