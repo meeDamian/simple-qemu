@@ -67,6 +67,7 @@ jobs:
 
     - name: Extract qemu binaries from built image
       run: |
+        mkdir -p binaries/
         ID=$(docker create midstate)
         docker cp  "${ID}:/binaries/"  binaries/
         docker rm "${ID}"
