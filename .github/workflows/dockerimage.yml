@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Remove fluff from built-architectures.txt
+    - name: Extract essence from built-architectures.txt
       run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
     - name: Build base image
@@ -20,7 +20,7 @@ jobs:
         --file      Dockerfile
         --target    builder
 
-    - name: Build :enable
+    - name: Build :enable image
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
@@ -28,7 +28,7 @@ jobs:
         --file      Dockerfile
         --target    enable
 
-    - name: Build :<single-arch>
+    - name: Build :<single-arch> images
       run: |
         for arch in $(cat built-architectures.txt); do
           echo "${arch}"
@@ -40,7 +40,7 @@ jobs:
             --target    single
         done
 
-    - name: Build :latest
+    - name: Build :latest image
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
@@ -48,33 +48,30 @@ jobs:
         --file      Dockerfile
         --target    latest
 
-    - name: List all
+    - name: List all built images
       run: docker images ${GITHUB_REPOSITORY,,}
 
-    - name: Save all images
+    - name: Save all images to .tgz files
       run: |
-        mkdir -p containers/
-        for container in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
-          FILENAME="$(echo "${container}" | tr /: -)"
-          docker save "${container}" | gzip > "containers/${FILENAME}.tgz"
+        mkdir -p images/
+        for image in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
+          FILENAME="$(echo "${image}" | tr /: -)"
+          docker save "${image}" | gzip > "images/${FILENAME}.tgz"
         done
 
-#        mkdir -p qqq/
-#        docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker save % | gzip > qqq/%.tgz
-
-    - name: Upload containers
+    - name: Upload built images
       uses: actions/upload-artifact@v1.0.0
       with:
-        name: containers
-        path: containers/
+        name: images
+        path: images/
 
-    - name: Extract all built binaries from image
+    - name: Extract qemu binaries from built image
       run: |
         ID=$(docker create midstate)
         docker cp  "${ID}:/binaries/"  binaries/
         docker rm "${ID}"
 
-    - name: Upload binaries
+    - name: Upload built binaries
       uses: actions/upload-artifact@v1.0.0
       with:
         name: binaries
