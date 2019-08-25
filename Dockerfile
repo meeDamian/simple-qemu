@@ -55,11 +55,15 @@ RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs 
 # make :)
 RUN make
 
-# Copy and rename all built qemu binaries to root `/`
+# Copy, rename, and strip all built qemu binaries to root `/`
 RUN mkdir /binaries/ && \
     for arch in $(cat /built-architectures.txt); do \
         cp  "/qemu/${arch}-linux-user/qemu-${arch}"  "/binaries/qemu-${arch}-static"; \
-    done
+    done && \
+    ls -lh /binaries/ && \
+    strip /binaries/* && \
+    ls -lh /binaries/
+
 
 
 ## What follows here is 3 different Dockerfile stages used to build 3 different Docker images
