@@ -80,14 +80,27 @@ jobs:
         path: binaries/
 
 
-#  docker-hub:
-#    name: Performs meta stuff
-#    runs-on: ubuntu-latest
-#    needs: build
-#    steps:
-##    - uses: actions/checkout@v1
-#    - name: Sync README.md and description with Docker Hub
-#      uses: meeDamian/sync-readme@v1.0.5
-#      with:
-#        pass: ${{ secrets.DOCKER_PASS }}
-#        description: true
+  # TODO: add on-tag conditional
+  github-release:
+    name: Create Github Release, after a successful build of a pushed git tag
+    runs-on: ubuntu-18.04
+    needs: build
+    steps:
+      - name: See what we have
+        run: |
+          docker images || true
+          ls -la
+
+
+  # TODO: add on-tag conditional
+  docker-hub:
+    name: Tag & deploy to Docker Hub, after a successful build of a pushed git tag
+    runs-on: ubuntu-18.04
+    needs: build
+    steps:
+#    - uses: actions/checkout@v1
+    - name: Sync README.md and description with Docker Hub
+      uses: meeDamian/sync-readme@v1.0.5
+      with:
+        pass: ${{ secrets.DOCKER_PASS }}
+        description: true
