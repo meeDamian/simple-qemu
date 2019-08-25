@@ -16,7 +16,7 @@ jobs:
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
-        --tag       _builder
+        --tag       midstate
         --file      Dockerfile
         --target    builder
 
@@ -68,7 +68,7 @@ jobs:
 
     - name: Extract all built binaries from image
       run: |
-        ID=$(docker create "${GITHUB_REPOSITORY,,}:_builder")
+        ID=$(docker create "${GITHUB_REPOSITORY,,}:midstate")
         docker cp  "${ID}:/binaries/"  binaries/
         docker rm "${ID}"
 
