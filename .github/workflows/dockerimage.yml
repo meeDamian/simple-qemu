@@ -111,7 +111,7 @@ jobs:
         name: images
 
     - run: ls -la images/
-      -
+
     - name: Job implementation not finished
       run: exit 1
 
