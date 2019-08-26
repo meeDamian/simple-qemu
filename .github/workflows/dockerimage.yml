@@ -111,28 +111,16 @@ jobs:
       run: |
         SLUG=${GITHUB_REPOSITORY,,}
         VERSION=v4.1.0
-
         SUGGESTED=$(./scripts/shortcut-tags.sh "${VERSION}")
-
-        
-
-
-
-
         for image in $(docker images "${SLUG}" --format "{{.Tag}}"); do
           suffix="-${image}"
-
           if [ "${image}" == "latest" ]; then
             suffix=""
           fi
-
           for tag in $(./scripts/shortcut-tags.sh "${VERSION}"); do
-
             echo  "${SLUG}:${image}"   "${SLUG}:${tag}${suffix}"
-#            docker tag  "${SLUG}:${image}"   "${SLUG}:${VERSION}${suffix}"
-
+            # docker tag  "${SLUG}:${image}"   "${SLUG}:${VERSION}${suffix}"
           done
-
         done
 
 
