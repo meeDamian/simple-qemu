@@ -80,6 +80,9 @@ jobs:
         path: binaries/
 
 
+  # TODO: add a test job that tries to run some simple, and a bit more involved things on containers with emulated architecture
+
+
   # TODO: add on-tag conditional
   github-release:
     name: Create Github Release. Only after successful build of a pushed git tag
@@ -114,7 +117,7 @@ jobs:
     - name: Load images to local Docker registry
       run: |
         for file in $(ls images/); do
-          docker load -i "${file}"
+          docker load -i "images/${file}"
         done
         docker images ${GITHUB_REPOSITORY,,}
 
