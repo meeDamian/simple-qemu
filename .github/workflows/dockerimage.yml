@@ -40,11 +40,11 @@ jobs:
             --target    single
         done
 
-    - name: Build :vX.X.X image
+    - name: Build :comprehensible (all-included) image
       run: >
         DOCKER_BUILDKIT=1 docker build .
         --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY,,}:v4.1.0
+        --tag       ${GITHUB_REPOSITORY,,}:comprehensible
         --file      Dockerfile
         --target    comprehensive
 
@@ -108,39 +108,7 @@ jobs:
       run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${{ secrets.DOCKER_USER }}" --password-stdin
 
     - name: Version-tag all images
-      run: |
-        SLUG=${GITHUB_REPOSITORY,,}
-        VERSION=v4.1.0
-        SUGGESTED=$(./scripts/shortcut-tags.sh "${VERSION}")
-        for image in $(docker images "${SLUG}" --format "{{.Tag}}"); do
-          suffix="-${image}"
-          if [ "${image}" == "latest" ]; then
-            suffix=""
-          fi
-          for tag in $(./scripts/shortcut-tags.sh "${VERSION}"); do
-            echo  "${SLUG}:${image}"   "${SLUG}:${tag}${suffix}"
-            # docker tag  "${SLUG}:${image}"   "${SLUG}:${VERSION}${suffix}"
-          done
-        done
-
-
-
-#        MAJOR=$(echo ${VERSION} | cut -d. -f-1)
-#        MINOR=$(echo ${VERSION} | cut -d. -f-2)
-#
-#        SLUG=${GITHUB_REPOSITORY,,}
-#
-#        for image in $(docker images "${SLUG}" --format "{{.Tag}}"); do
-#          suffix="-${image}"
-#
-#          if [ "${image}" == "latest" ]; then
-#            suffix=""
-#          fi
-#
-#          docker tag  "${SLUG}:${image}"   "${SLUG}:${VERSION}${suffix}"
-#          docker tag  "${SLUG}:${image}"   "${SLUG}:${MINOR}${suffix}"
-#          docker tag  "${SLUG}:${image}"   "${SLUG}:${MAJOR}${suffix}"
-#        done
+      run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
 
     - name: Job implementation not finished
       run: exit 1

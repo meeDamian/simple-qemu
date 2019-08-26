@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+## This script takes a single argument: a SemVer-compliant git tag, which then gets compared against already existing tags.
+#   The result is a list of recommended Docker tags to be created, or overriden upon release. For example:
+#
+#     Given already existing git tags:  v0.0.1  v1.0.1  v1.0.2  v1.1.0
+#         Running:  `./shortcut-tags.sh `v1.1.1`  only yield the following result:   latest  v1  v1.1
+#         As the tag being created was the highest(/latest) available.
+#
+#     Given the same starting git tags: v0.0.1  v1.0.1  v1.0.2  v1.1.0  v1.1.1
+#         Running:  `./shortcut-tags.sh v1.0.3`  only recommends:  v1.0
+#         As anything else would either created a downgrade, or confused the user.
+#
+
 # Verify that the only required argument has been provided
 VERSION=$1
 if [[ -z "${VERSION}" ]]; then
@@ -58,6 +70,5 @@ if [[ ${NUMBER_IN_MINOR_ORDER} -eq "1" ]]; then
   TAGS+=("${MINOR}")
 fi
 
-# Finally, and for completeness, add the original tag, and return the result.  Duplicate check has already run before.
-# shellcheck disable=SC2145
-echo "${TAGS[@]} ${VERSION}" | tr ' ' '\n'
+# Finally, return the suggested tags
+echo "${TAGS[@]}" | tr ' ' '\n'
