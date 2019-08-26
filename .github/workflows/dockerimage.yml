@@ -96,10 +96,11 @@ jobs:
         run: exit 1
 
 
-  # TODO: add on-tag conditional
+  # TODO: add on-tag conditional to every step…
+  #   if: startsWith(github.ref, 'refs/tags/')
   docker-hub:
     name: Tag & deploy to Docker Hub, after a successful build of a pushed git tag
-    if: startsWith(github.ref, 'refs/tags/')
+
     runs-on: ubuntu-18.04
     needs: build
     steps:
