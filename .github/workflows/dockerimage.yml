@@ -7,77 +7,77 @@ jobs:
     name: Build all images & upload them as build artifacts
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v1.0.0
 
-    - name: Extract essence from built-architectures.txt
-      run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
+      - name: Extract essence from built-architectures.txt
+        run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
-    - name: Build base image
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --tag       midstate
-        --file      Dockerfile
-        --target    builder
+      - name: Build base image
+        run: >
+          DOCKER_BUILDKIT=1 docker build .
+          --build-arg QEMU_VERSION=v4.1.0
+          --tag       midstate
+          --file      Dockerfile
+          --target    builder
 
-    - name: Build :enable image
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY,,}:enable
-        --file      Dockerfile
-        --target    enable
+      - name: Build :enable image
+        run: >
+          DOCKER_BUILDKIT=1 docker build .
+          --build-arg QEMU_VERSION=v4.1.0
+          --tag       ${GITHUB_REPOSITORY,,}:enable
+          --file      Dockerfile
+          --target    enable
 
-    - name: Build :<single-arch> images
-      run: |
-        for arch in $(cat built-architectures.txt); do
-          echo "${arch}"
-          DOCKER_BUILDKIT=1 docker build . \
-            --build-arg QEMU_VERSION=v4.1.0 \
-            --build-arg ARCH=${arch} \
-            --tag       ${GITHUB_REPOSITORY,,}:${arch} \
-            --file      Dockerfile \
-            --target    single
-        done
+      - name: Build :<single-arch> images
+        run: |
+          for arch in $(cat built-architectures.txt); do
+            echo "${arch}"
+            DOCKER_BUILDKIT=1 docker build . \
+              --build-arg QEMU_VERSION=v4.1.0 \
+              --build-arg ARCH=${arch} \
+              --tag       ${GITHUB_REPOSITORY,,}:${arch} \
+              --file      Dockerfile \
+              --target    single
+          done
 
-    - name: Build :comprehensible (all-included) image
-      run: >
-        DOCKER_BUILDKIT=1 docker build .
-        --build-arg QEMU_VERSION=v4.1.0
-        --tag       ${GITHUB_REPOSITORY,,}:comprehensible
-        --file      Dockerfile
-        --target    comprehensive
+      - name: Build :comprehensible (all-included) image
+        run: >
+          DOCKER_BUILDKIT=1 docker build .
+          --build-arg QEMU_VERSION=v4.1.0
+          --tag       ${GITHUB_REPOSITORY,,}:comprehensible
+          --file      Dockerfile
+          --target    comprehensive
 
-    - name: List all built images
-      run: docker images ${GITHUB_REPOSITORY,,}
+      - name: List all built images
+        run: docker images ${GITHUB_REPOSITORY,,}
 
-    - name: Save all images to .tgz files
-      run: |
-        mkdir -p images/
-        for image in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
-          FILENAME="$(echo "${image}" | tr /: -)"
-          docker save "${image}" | gzip > "images/${FILENAME}.tgz"
-        done
+      - name: Save all images to .tgz files
+        run: |
+          mkdir -p images/
+          for image in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
+            FILENAME="$(echo "${image}" | tr /: -)"
+            docker save "${image}" | gzip > "images/${FILENAME}.tgz"
+          done
 
-    - name: Upload built images
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: images
-        path: images/
+      - name: Upload built images
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: images
+          path: images/
 
-    - name: Extract qemu binaries from built image
-      run: |
-        mkdir -p binaries/
-        ID=$(docker create midstate)
-        docker cp  "${ID}:/binaries/"  .
-        docker rm "${ID}"
-        gzip binaries/*
+      - name: Extract qemu binaries from built image
+        run: |
+          mkdir -p binaries/
+          ID=$(docker create midstate)
+          docker cp  "${ID}:/binaries/"  .
+          docker rm "${ID}"
+          gzip binaries/*
 
-    - name: Upload built binaries
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: binaries
-        path: binaries/
+      - name: Upload built binaries
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: binaries
+          path: binaries/
 
 
   # TODO: add a test job that tries to run some simple, and a bit more involved things on containers with emulated architecture
@@ -91,33 +91,33 @@ jobs:
     runs-on: ubuntu-18.04
     needs: build
     steps:
-    - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v1.0.0
 
-    - name: Print Docker version
-      run: docker version
+      - name: Print Docker version
+        run: docker version
 
-    - name: Download all build artifacts
-      uses: actions/download-artifact@v1.0.0
-      with:
-        name: images
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: images
 
-    - name: Load Docker images locally
-      run: ls images/ | xargs -I % docker load -i "images/%"
+      - name: Load Docker images locally
+        run: ls images/ | xargs -I % docker load -i "images/%"
 
-    - name: Login to Docker Hub registry
-      run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${{ secrets.DOCKER_USER }}" --password-stdin
+      - name: Login to Docker Hub registry
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${{ secrets.DOCKER_USER }}" --password-stdin
 
-    - name: Version-tag all images
-      run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
+      - name: Version-tag all images
+        run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
 
-    - name: Job implementation not finished
-      run: exit 1
+      - name: Job implementation not finished
+        run: exit 1
 
-    - name: Sync README.md and description with Docker Hub
-      uses: meeDamian/sync-readme@v1.0.5
-      with:
-        pass: ${{ secrets.DOCKER_PASS }}
-        description: true
+      - name: Sync README.md and description with Docker Hub
+        uses: meeDamian/sync-readme@v1.0.5
+        with:
+          pass: ${{ secrets.DOCKER_PASS }}
+          description: true
 
 
   # TODO: add on-tag conditional
