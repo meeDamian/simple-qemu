@@ -101,19 +101,22 @@ jobs:
         with:
           name: images
 
-      - name: Load Docker images locally
+      - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
-      - name: Login to Docker Hub registry
+      - name: Login to registry
         run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${{ secrets.DOCKER_USER }}" --password-stdin
 
       - name: Version-tag all images
         run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
 
-      - name: Job implementation not finished
-        run: exit 1
+      - name: List all tagged images
+        run: docker images ${GITHUB_REPOSITORY,,}
 
-      - name: Sync README.md and description with Docker Hub
+      - name: Push all images
+        run: docker images ${GITHUB_REPOSITORY,,} | xargs -I % docker push %
+
+      - name: Sync README.md and Description to Docker Hub
         uses: meeDamian/sync-readme@v1.0.5
         with:
           pass: ${{ secrets.DOCKER_PASS }}
