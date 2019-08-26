@@ -86,22 +86,26 @@ jobs:
     runs-on: ubuntu-18.04
     needs: build
     steps:
-      - name: See what we have
-        run: true
+      - uses: actions/download-artifact@v1.0.0
+        with:
+          name: binaries
+
+      - run: ls -la
+
+      - name: Job implementation not finished
+        run: exit 1
 
 
   # TODO: add on-tag conditional
   docker-hub:
     name: Tag & deploy to Docker Hub, after a successful build of a pushed git tag
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-18.04
     needs: build
     steps:
     - uses: actions/checkout@v1.0.0
-
-    - name: show me
-      run: |
-        env
-        ls -la
+    - name: Job implementation not finished
+      run: exit 1
 
     - name: Sync README.md and description with Docker Hub
       uses: meeDamian/sync-readme@v1.0.5
