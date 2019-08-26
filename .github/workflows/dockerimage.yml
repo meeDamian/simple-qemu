@@ -114,7 +114,7 @@ jobs:
         run: docker images ${GITHUB_REPOSITORY,,}
 
       - name: Push all images
-        run: docker images ${GITHUB_REPOSITORY,,} | xargs -I % docker push %
+        run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
       - name: Sync README.md and Description to Docker Hub
         uses: meeDamian/sync-readme@v1.0.5
