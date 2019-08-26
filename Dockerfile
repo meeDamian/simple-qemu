@@ -88,7 +88,7 @@ ENTRYPOINT ["/enable.sh"]
 
 ## 2. This image contains all `qemu` binaries that were supported by this repo at the time of tagging.
 #   Note that it builds on top of stage #1, so everything done there is also available here.
-FROM enable AS latest
+FROM enable AS comprehensive
 
 # Copy, and bundle together all built qemu binaries
 COPY --from=builder  /binaries/qemu-*-static  /
