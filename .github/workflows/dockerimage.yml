@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir -p images/
           for image in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
-            FILENAME="$(echo "${image}" | tr /: -)"
+            FILENAME="$(echo "${image}" | tr :/ -)"
             docker save "${image}" | gzip > "images/${FILENAME}.tgz"
           done
 
@@ -82,7 +82,7 @@ jobs:
 
   # TODO: add a test job that tries to run some simple, and a bit more involved things on containers with emulated architecture
   test:
-    name: test various things on built containers
+    name: Test if running arch-specific images works
     runs-on: ubuntu-18.04
     needs: build
     strategy:
@@ -90,39 +90,40 @@ jobs:
         arch:
           - arm
           - aarch64
-          - riscv32
+#          - riscv32 # Nothing to test it against…
           - riscv64
-
     steps:
       - uses: actions/checkout@v1
-
-      - name: log things
-        run: |
-          echo ${{ matrix.arch }}
-          go version
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v1.0.0
         with:
           name: images
 
-      - name: Load images locally
-        run: ls images/ | xargs -I % docker load -i "images/%"
+      - name: Load relevant image locally
+        run: docker load -i "images/$(echo "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" | tr :/ -).tgz"
 
-      - name: Enable emulation
+      - name: Enable ${{ matrix.arch }} Emulation
         run: docker run --rm --privileged meedamian/simple-qemu:${{ matrix.arch }} --reset -p yes
 
-      - name: try to run risc-v
-        run: docker run carlosedp/debian:sid-riscv64 uname -a
+      - name: Try to run arch-specific image
+        run: |
+          IMAGE="${{ matrix.arch }}/alpine"
+
+          if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
+            IMAGE="carlosedp/debian:sid-riscv64"
+          fi
+
+          docker run ${IMAGE} uname -a
 
 
   # TODO: add on-tag conditional to every step…
   #   if: startsWith(github.ref, 'refs/tags/')
   docker-hub:
-    name: Tag & deploy to Docker Hub.  Only after successful build of a pushed git tag
+    name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
-    needs: build
+    needs: test
     steps:
       - uses: actions/checkout@v1.0.0
 
