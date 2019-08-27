@@ -101,6 +101,14 @@ jobs:
           echo ${{ matrix.arch }}
           go version
 
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: images
+
+      - name: Load images locally
+        run: ls images/ | xargs -I % docker load -i "images/%"
+
       - name: Enable emulation
         run: docker run --rm --privileged meedamian/simple-qemu:v4.1.0 --reset -p yes
 
