@@ -91,7 +91,7 @@ ENTRYPOINT ["/enable.sh"]
 FROM enable AS comprehensive
 
 # Copy, and bundle together all built qemu binaries
-COPY --from=builder  /binaries/qemu-*-static  /
+COPY --from=builder  /binaries/qemu-*-static  /usr/bin/
 
 ENTRYPOINT ["/enable.sh"]
 
@@ -107,7 +107,7 @@ ARG ARCH
 RUN test ! -z "${ARCH}" || (printf "\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg ARCH=arm-linux-user .\n\n" && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
-COPY --from=builder  /binaries/qemu-${ARCH}-static  /
+COPY --from=builder  /binaries/qemu-${ARCH}-static  /usr/bin/
 
 ENTRYPOINT ["/enable.sh"]
 
