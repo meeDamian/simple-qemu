@@ -103,7 +103,7 @@ jobs:
       - name: Load relevant image locally
         run: docker load -i "images/$(echo "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" | tr :/ -).tgz"
 
-      - name: Enable ${{ matrix.arch }} Emulation
+      - name: Enable emulation
         run: docker run --rm --privileged meedamian/simple-qemu:${{ matrix.arch }} --reset -p yes
 
       - name: Try to run arch-specific image
@@ -112,6 +112,10 @@ jobs:
 
           if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
             IMAGE="carlosedp/debian:sid-riscv64"
+          fi
+
+          if [[ "${{ matrix.arch }}" == "arm" ]]; then
+            IMAGE="arm32v7/alpine"
           fi
 
           docker run ${IMAGE} uname -a
