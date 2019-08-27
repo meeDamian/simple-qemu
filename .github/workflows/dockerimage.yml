@@ -81,6 +81,31 @@ jobs:
 
 
   # TODO: add a test job that tries to run some simple, and a bit more involved things on containers with emulated architecture
+  test:
+    name: test various things on built containers
+    runs-on: ubuntu-18.04
+    needs: build
+    strategy:
+      matrix:
+        arch:
+          - arm
+          - aarch64
+          - riscv32
+          - riscv64
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: log things
+        run: |
+          echo ${{ matrix.arch }}
+          go version
+
+      - name: Enable emulation
+        run: docker run --rm --privileged meedamian/simple-qemu:v4.1.0 --reset -p yes
+
+      - name: try to run risc-v
+        run: docker run carlosedp/whoami:riscv64
 
 
   # TODO: add on-tag conditional to every step…
@@ -89,7 +114,7 @@ jobs:
     name: Tag & deploy to Docker Hub.  Only after successful build of a pushed git tag
 
     runs-on: ubuntu-18.04
-    needs: build
+    needs: test
     steps:
       - uses: actions/checkout@v1.0.0
 
@@ -127,7 +152,7 @@ jobs:
   github-release:
     name: Create Github Release. Only after successful build of a pushed git tag
     runs-on: ubuntu-18.04
-    needs: build
+    needs: test
     steps:
       - uses: actions/download-artifact@v1.0.0
         with:
