@@ -110,7 +110,9 @@ jobs:
         run: ls images/ | xargs -I % docker load -i "images/%"
 
       - name: Enable emulation
-        run: docker run --rm --privileged meedamian/simple-qemu:v4.1.0 --reset -p yes
+        run: |
+          docker pull meedamian/simple-qemu:v4.1.0
+          docker run --rm --privileged meedamian/simple-qemu:v4.1.0 --reset -p yes
 
       - name: try to run risc-v
         run: docker run carlosedp/whoami:riscv64
