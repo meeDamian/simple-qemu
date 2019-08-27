@@ -104,7 +104,7 @@ jobs:
         run: docker load -i "images/$(echo "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" | tr :/ -).tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged meedamian/simple-qemu:${{ matrix.arch }} --reset -p yes
+        run: docker run --rm --privileged "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" -p yes
 
       - name: Try to run arch-specific image
         run: |
