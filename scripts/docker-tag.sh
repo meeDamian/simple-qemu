@@ -12,7 +12,7 @@ SUGGESTED_TAGS=$(./scripts/shortcut-tags.sh "${TAG}")
 for image_type in $(docker images "${SLUG}" --format "{{.Tag}}"); do
 
   # All-in images are tagged with version alone, so can be handle, and done here already
-  if [[ "${image_type}" == "comprehensible" ]]; then
+  if [[ "${image_type}" == "${TAG}" ]]; then
     echo "${SUGGESTED_TAGS}" | xargs -I %  docker tag  "${SLUG}:${image_type}"  "${SLUG}:%"
     continue
   fi
@@ -31,6 +31,3 @@ for image_type in $(docker images "${SLUG}" --format "{{.Tag}}"); do
   # Create a tag with a full version, and exact qemu architecture
   docker tag  "${SLUG}:${image_type}"  "${SLUG}:${TAG}-${image_type}"
 done
-
-# Finally remove alias of the image with unnecessarily long tag
-docker rmi "${SLUG}:comprehensible"

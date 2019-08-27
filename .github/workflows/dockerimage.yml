@@ -40,11 +40,11 @@ jobs:
               --target    single
           done
 
-      - name: Build :comprehensible (all-included) image
+      - name: Build :v4.1.0 (all-included) image
         run: >
           DOCKER_BUILDKIT=1 docker build .
           --build-arg QEMU_VERSION=v4.1.0
-          --tag       ${GITHUB_REPOSITORY,,}:comprehensible
+          --tag       ${GITHUB_REPOSITORY,,}:v4.1.0
           --file      Dockerfile
           --target    comprehensive
 
