@@ -110,10 +110,10 @@ jobs:
         run: ls images/ | xargs -I % docker load -i "images/%"
 
       - name: Enable emulation
-        run: docker run --rm --privileged meedamian/simple-qemu:comprehensible --reset -p yes
+        run: docker run --rm --privileged meedamian/simple-qemu:${{ matrix.arch }} --reset -p yes
 
       - name: try to run risc-v
-        run: docker run carlosedp/whoami:riscv64
+        run: docker run carlosedp/debian:sid-riscv64 uname -a
 
 
   # TODO: add on-tag conditional to every step…
