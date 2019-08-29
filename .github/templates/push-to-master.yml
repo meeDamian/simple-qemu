@@ -1,0 +1,13 @@
+name: Build & test qemu on each push to master
+
+{{ _do-not-edit.txt }}
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  {{ _build-job.yml }}
+
+  {{ _test-job.yml }}

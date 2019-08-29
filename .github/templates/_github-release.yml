@@ -1,0 +1,14 @@
+  # TODO: add on-tag conditional
+  github-release:
+    name: Create Github Release. Only after successful build of a pushed git tag
+    runs-on: ubuntu-18.04
+    needs: test
+    steps:
+      - uses: actions/download-artifact@v1.0.0
+        with:
+          name: binaries
+
+      - run: ls -la binaries/
+
+      - name: Job implementation not finished
+        run: exit 0
