@@ -48,3 +48,7 @@ After each change to template files, `./scripts/generate-workflows.sh` is called
 ## `./shortcut-tags.sh`
 
 This script takes a semver version tag as an argument, and by comparing it with already existing semver-compliant tags, suggests shortcut version to create.  
+
+## `./trigger-new-version-build.sh`
+
+This script is meant to be run on a developer machine, and helps with a release of a new `qemu` version.
