@@ -26,7 +26,7 @@ jobs:
       - name: Build base image
         run: >
           DOCKER_BUILDKIT=1 docker build .
-          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg QEMU_VERSION=v3.1.0
           --tag       midstate
           --file      Dockerfile
           --target    builder
@@ -34,7 +34,7 @@ jobs:
       - name: Build :enable image
         run: >
           DOCKER_BUILDKIT=1 docker build .
-          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg QEMU_VERSION=v3.1.0
           --tag       ${GITHUB_REPOSITORY,,}:enable
           --file      Dockerfile
           --target    enable
@@ -44,18 +44,18 @@ jobs:
           for arch in $(cat built-architectures.txt); do
             echo "${arch}"
             DOCKER_BUILDKIT=1 docker build . \
-              --build-arg QEMU_VERSION=v4.1.0 \
+              --build-arg QEMU_VERSION=v3.1.0 \
               --build-arg ARCH=${arch} \
               --tag       ${GITHUB_REPOSITORY,,}:${arch} \
               --file      Dockerfile \
               --target    single
           done
 
-      - name: Build :v4.1.0 (all-included) image
+      - name: Build :v3.1.0 (all-included) image
         run: >
           DOCKER_BUILDKIT=1 docker build .
-          --build-arg QEMU_VERSION=v4.1.0
-          --tag       ${GITHUB_REPOSITORY,,}:v4.1.0
+          --build-arg QEMU_VERSION=v3.1.0
+          --tag       ${GITHUB_REPOSITORY,,}:v3.1.0
           --file      Dockerfile
           --target    comprehensive
 
@@ -143,7 +143,7 @@ jobs:
         run: |
           GIT_VER="$(echo ${GITHUB_REF} | awk -F/ '{print $NF}')"
 
-          if [ "${GIT_VER}" != "v4.1.0" ]; then
-            printf "\nVersion mismatch!  Tagged as %s, while file claims %s\n\n" "${GIT_VER}" "v4.1.0"
+          if [ "${GIT_VER}" != "v3.1.0" ]; then
+            printf "\nVersion mismatch!  Tagged as %s, while file claims %s\n\n" "${GIT_VER}" "v3.1.0"
             exit 1
           fi
