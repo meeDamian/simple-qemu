@@ -1,0 +1,23 @@
+  github-release:
+    name: Create Github Release. Only after successful build of a pushed git tag
+    runs-on: ubuntu-18.04
+    needs: test
+    steps:
+      - name: Download binaries from build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: binaries
+
+      - name: Print checksums of binaries for future reference
+        run: sha256sum binaries/*
+
+      - name: Upload binaries to Github Release
+        uses: meeDamian/github-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: >
+            This release takes `qemu` binaries to be on par with
+            https://github.com/qemu/qemu/releases/tag/${{QEMU_VERSION}}
+
+          gzip: false
+          files: binaries/*

@@ -1,0 +1,17 @@
+name: Build & deploy qemu on a git tag push
+
+{{ _do-not-edit.txt }}
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  {{ _build-job.yml }}
+
+  {{ _test-job.yml }}
+
+  {{ _docker-hub.yml }}
+
+  {{ _github-release.yml }}
