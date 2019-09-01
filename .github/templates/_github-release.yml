@@ -15,9 +15,6 @@
         uses: meeDamian/github-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          body: >
-            This release takes `qemu` binaries to be on par with
-            https://github.com/qemu/qemu/releases/tag/${{QEMU_VERSION}}
-
+          body: This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${{QEMU_VERSION}}
           gzip: false
           files: binaries/*
