@@ -43,6 +43,11 @@
           --file      Dockerfile
           --target    comprehensive
 
+      - name: Create extra convenience tags
+        run: |
+          docker tag ${GITHUB_REPOSITORY,,}:arm     ${GITHUB_REPOSITORY,,}:arm32v7
+          docker tag ${GITHUB_REPOSITORY,,}:aarch64 ${GITHUB_REPOSITORY,,}:arm64v8
+
       - name: List all built images
         run: docker images ${GITHUB_REPOSITORY,,}
 
