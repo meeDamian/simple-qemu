@@ -171,7 +171,7 @@ jobs:
         run: ls images/ | xargs -I % docker load -i "images/%"
 
       - name: Login to registry
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${{ secrets.DOCKER_USER }}" --password-stdin
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
 
       - name: Version-tag all images
         run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
