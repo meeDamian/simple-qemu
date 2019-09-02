@@ -21,7 +21,7 @@ git add ./QEMU_VERSION
 ./scripts/generate-workflows.sh
 git add ./.github/workflows
 
-git commit -m "Trigger build of ${VERSION}"
+git commit --allow-empty -m "Trigger build of ${VERSION}"
 git push origin master
 
 
