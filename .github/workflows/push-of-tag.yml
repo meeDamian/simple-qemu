@@ -194,7 +194,7 @@ jobs:
           description: true
 
       - name: Login to Github Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
+        run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
       - name: Push all images to Github Registry
         run: |
