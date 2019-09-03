@@ -153,8 +153,8 @@ jobs:
             exit 1
           fi
 
-  docker-hub:
-    name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
+  docker-push:
+    name: Tag & deploy to Docker Hub and Github registry.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
     needs: test
@@ -175,16 +175,16 @@ jobs:
       - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
-      - name: Login to registry
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
-
       - name: Version-tag all images
         run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "v4.1.0"
 
       - name: List all tagged images
         run: docker images ${GITHUB_REPOSITORY,,}
 
-      - name: Push all images
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
+
+      - name: Push all images to Docker Hub
         run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
       - name: Sync README.md and Description to Docker Hub
@@ -192,6 +192,16 @@ jobs:
         with:
           pass: ${{ secrets.DOCKER_PASS }}
           description: true
+
+      - name: Login to Github Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR}" --password-stdin
+
+      - name: Push all images to Github Registry
+        run: |
+          for img in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
+            docker tag "${img}" "docker.pkg.github.com/${img}"
+            docker push "docker.pkg.github.com/${img}"
+          done
 
   github-release:
     name: Create Github Release. Only after successful build of a pushed git tag

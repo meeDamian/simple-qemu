@@ -36,7 +36,7 @@ jobs:
 
   {{ _test-job.yml }}
 
-  {{ _docker-hub.yml }}
+  {{ _docker-push.yml }}
 
   {{ _github-release.yml }}
 ```
