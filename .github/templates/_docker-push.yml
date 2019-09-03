@@ -41,9 +41,10 @@
       - name: Login to Github Registry
         run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
+        # NOTE: Github registry doesn't support deleting images yet, so for now I'll push it to my playground repo…
       - name: Push all images to Github Registry
         run: |
-          for img in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
-            docker tag "${img}" "docker.pkg.github.com/${img}"
-            docker push "docker.pkg.github.com/${img}"
+          for tag in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Tag}}"); do
+            docker tag "${GITHUB_REPOSITORY,,}:${tag}" "docker.pkg.github.com/meedamian/docker-ci/simple-qemu:${tag}"
+            docker push "docker.pkg.github.com/meedamian/docker-ci/simple-qemu:${tag}"
           done
