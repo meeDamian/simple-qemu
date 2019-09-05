@@ -46,7 +46,6 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
 
     # Variants can be provided with aliases, ex: `arm:arm32v7`.  This loops takes care of that.
     for alias in $(echo "${variant}" | tr ':' ' '); do
-      echo "ALIAS: ${alias}"
 
       # If it's the latest version, tag each variant with a plain tag, ex: `:arm32v7`, or `:aarch64`.
       if [[ "${suggestion}" == "latest" ]]; then
@@ -55,7 +54,7 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
       fi
 
       # For a shortened versio, just prepend it to the variant name, ex: `:v4.1-arm`
-      tag "${variant}" "${suggestion}-${alias}"
+      tag "${variant_base}" "${suggestion}-${alias}"
     done
   done
 done
