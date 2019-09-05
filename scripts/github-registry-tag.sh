@@ -17,7 +17,7 @@ VARIANTS=$4
 
 # This function creates requested Docker Tags, or just prints the commands if `DRY_RUN=1` is set.
 tag() {
-  CMD="docker tag  ${BASE_TAG}:$1  ${SLUG}:$2"
+  CMD="docker tag  ${BASE_TAG}:$1  ${SLUG}/$2:$3"
   if [[ -n "${DRY_RUN}" ]]; then
     echo "${CMD}"
     return 0
@@ -30,7 +30,7 @@ tag() {
 SUGGESTED_TAGS=$(./scripts/shortcut-tags.sh "${TAG}")
 
 # Always tag the all-in image with it's own specific version.
-tag "${TAG}" "${TAG}"
+tag "${TAG}" "${TAG}" "latest"
 
 # Attach our specific ${TAG} to the suggested tags.
 for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
@@ -46,7 +46,6 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
 
     # Variants can be provided with aliases, ex: `arm:arm32v7`.  This loops takes care of that.
     for alias in $(echo "${variant}" | tr ':' ' '); do
-      echo "ALIAS: ${alias}"
 
       # If it's the latest version, tag each variant with a plain tag, ex: `:arm32v7`, or `:aarch64`.
       if [[ "${suggestion}" == "latest" ]]; then
