@@ -1,4 +1,4 @@
-  docker-push:
+  docker-hub-push:
     name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
