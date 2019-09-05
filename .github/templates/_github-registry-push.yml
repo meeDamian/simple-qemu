@@ -34,5 +34,6 @@
       - name: Login to Github Registry
         run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
-      - name: Push all images
-        run: docker images "docker.pkg.github.com/meedamian/simple-qemu/*" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push % || true
+      # Temporarily disabled, since it's just borked…
+#      - name: Push all images
+#        run: docker images "docker.pkg.github.com/meedamian/simple-qemu/*" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
