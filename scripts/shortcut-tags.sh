@@ -2,7 +2,10 @@
 
 set -eo pipefail
 
-## This script takes a single argument: a SemVer-compliant git tag, which then gets compared against already existing tags.
+# Usage:
+#   ./shortcut-tags  <tag>  [<list-of-tags-file>]
+#
+# <tag> is SemVer-compliant git tag, which then gets compared against already existing tags (see <list-of-tags-file>).
 #   The result is a list of recommended Docker tags to be created, or overriden upon release. For example:
 #
 #     Given already existing git tags:  v0.0.1  v1.0.1  v1.0.2  v1.1.0
@@ -13,13 +16,26 @@ set -eo pipefail
 #         Running:  `./shortcut-tags.sh v1.0.3`  only recommends:  v1.0
 #         As anything else would either created a downgrade, or confused the user.
 #
+# <list-of-tags-file> is an optional path to a new-line separated tags to be compared against. If not provided `git tag` is used.
 
-# Verify that the only required argument has been provided
+# Verify that the required argument has been provided
 VERSION=$1
 if [[ -z "${VERSION}" ]]; then
-  >&2 printf "\nPass VERSION to suggest tags from, as the first argument. Ex:\n"
+  >&2 printf "\nERR: Pass VERSION to generate suggested tags from. Ex:\n"
   >&2 printf "\t./%s  %s\n\n"   "$(basename "$0")"  "v1.0.1"
   exit 1
+fi
+
+# If 2nd arguments provided, switch from using `git tag` to `cat file-provided`
+CMD="git tag"
+TAGS_FILE=$2
+if [[ -n "${TAGS_FILE}" ]]; then
+  if [[ ! -f ${TAGS_FILE} ]]; then
+    >&2 printf "\nERR: Path to tags file provided, but doesn't exist.\n\n"
+    exit 1
+  fi
+
+  CMD="cat ${TAGS_FILE}"
 fi
 
 SEMVER_REGEX="^[vV]?(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
@@ -31,14 +47,14 @@ if ! [[ "${VERSION}" =~ ${SEMVER_REGEX} ]]; then
 fi
 
 # Print a warning about found non-SemVer version, and list them
-NON_SEMVER=$(git tag | grep -Ev "${SEMVER_REGEX}" || true)
+NON_SEMVER=$(${CMD} | grep -Ev "${SEMVER_REGEX}" || true)
 if [[ -n "${NON_SEMVER}" ]]; then
   >&2 printf "\n\tWARNING: The following tags are ignored, for not being SemVer compilant:\n"
   >&2 printf "\n%s\n\n" "${NON_SEMVER//$'\n'/,  }"
 fi
 
 # make sure tag is on our list of tags
-LIST=$(printf "%s\n%s\n" "$(git tag)" "${VERSION}" | sort | uniq)
+LIST=$(printf "%s\n%s\n" "$(${CMD})" "${VERSION}" | sort | uniq)
 
 # A convenience function that filter's out non-SemVer tags, sorts them correctly (newest first),
 #   and optionally includes provided tag onto the list.

@@ -19,18 +19,18 @@
         run: >
           DOCKER_BUILDKIT=1 docker build .
           --build-arg QEMU_VERSION=${{QEMU_VERSION}}
-          --tag       ${GITHUB_REPOSITORY,,}:enable
+          --tag       simple-qemu:enable
           --file      Dockerfile
           --target    enable
 
       - name: Build :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
-            echo "${arch}"
+            echo "Building simple-qemu:${arch}…"
             DOCKER_BUILDKIT=1 docker build . \
               --build-arg QEMU_VERSION=${{QEMU_VERSION}} \
               --build-arg ARCH=${arch} \
-              --tag       ${GITHUB_REPOSITORY,,}:${arch} \
+              --tag       simple-qemu:${arch} \
               --file      Dockerfile \
               --target    single
           done
@@ -39,23 +39,18 @@
         run: >
           DOCKER_BUILDKIT=1 docker build .
           --build-arg QEMU_VERSION=${{QEMU_VERSION}}
-          --tag       ${GITHUB_REPOSITORY,,}:${{QEMU_VERSION}}
+          --tag       simple-qemu:${{QEMU_VERSION}}
           --file      Dockerfile
           --target    comprehensive
 
-      - name: Create extra convenience tags
-        run: |
-          docker tag ${GITHUB_REPOSITORY,,}:arm     ${GITHUB_REPOSITORY,,}:arm32v7
-          docker tag ${GITHUB_REPOSITORY,,}:aarch64 ${GITHUB_REPOSITORY,,}:arm64v8
-
       - name: List all built images
-        run: docker images ${GITHUB_REPOSITORY,,}
+        run: docker images simple-qemu
 
       - name: Save all images to .tgz files
         run: |
           mkdir -p images/
-          for image in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}"); do
-            FILENAME="$(echo "${image}" | tr :/ -)"
+          for image in $(docker images simple-qemu --format "{{.Repository}}:{{.Tag}}"); do
+            FILENAME="$(echo "${image}" | tr : -)"
             docker save "${image}" | gzip > "images/${FILENAME}.tgz"
           done
 
@@ -74,7 +69,7 @@
           ID=$(docker create midstate)
           docker cp  "${ID}:/binaries/"  .
           docker rm "${ID}"
-          gzip binaries/*
+          gzip -S "-${{QEMU_VERSION}}.gz" binaries/*
 
       - name: Print sha256sum of all binaries
         run: sha256sum binaries/*

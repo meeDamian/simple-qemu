@@ -21,10 +21,10 @@
         run: sha256sum images/*
 
       - name: Load relevant image locally
-        run: docker load -i "images/$(echo "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" | tr :/ -).tgz"
+        run: docker load -i "images/simple-qemu-${{ matrix.arch }}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "${GITHUB_REPOSITORY,,}:${{ matrix.arch }}" -p yes
+        run: docker run --rm --privileged "simple-qemu:${{ matrix.arch }}" -p yes
 
       - name: Try to run arch-specific image
         run: |

@@ -2,34 +2,59 @@
 
 set -eo pipefail
 
-# No validation.  YOLO.
-SLUG=$1
-TAG=$2
+# The source tag of images.  This will be used as the base of the first argument to `docker tag`.
+BASE_TAG=$1
 
+# The destination tag of the image.  This will be used as the base of the second argument to `docker tag`.
+SLUG=$2
 
-# Run a simple tag-recommending heuristic
-SUGGESTED_TAGS=$(./scripts/shortcut-tags.sh "${TAG}")
+# The version-tag currently being added, ex `v4.1.0`.
+TAG=$3
 
-# For each individual type of image
-for image_type in $(docker images "${SLUG}" --format "{{.Tag}}"); do
+# All possible image variants as a space-separated string.  Aliases are accepted in a form of: `name:alias`.
+#   Example string: `"enable arm:arm32v6 aarch64:arm64v8 riscv64"`
+VARIANTS=$4
 
-  # All-in images are tagged with version alone, so can be handle, and done here already
-  if [[ "${image_type}" == "${TAG}" ]]; then
-    echo "${SUGGESTED_TAGS}" | xargs -I %  docker tag  "${SLUG}:${image_type}"  "${SLUG}:%"
-    continue
+# This function creates requested Docker Tags, or just prints the commands if `DRY_RUN=1` is set.
+tag() {
+  CMD="docker tag  ${BASE_TAG}:$1  ${SLUG}:$2"
+  if [[ -n "${DRY_RUN}" ]]; then
+    echo "${CMD}"
+    return 0
   fi
 
-  # For each image_type, go through all suggestions, and…
-  for partial_version in ${SUGGESTED_TAGS}; do
-    # skip `latest` prefix, as plain `:arm` is simple, and clear enough compared to `:latest-arm`
-    if [[ "${partial_version}" == "latest" ]]; then
-      continue
-    fi
+  ${CMD}
+}
 
-    # If was suggested by he script earlier, tags like: `:v1-aarch64`, or `:v5.0-arm` are created here
-    docker tag  "${SLUG}:${image_type}"  "${SLUG}:${partial_version}-${image_type}"
+# Get short-tag recommenfations based on `git tag` output.
+SUGGESTED_TAGS=$(./scripts/shortcut-tags.sh "${TAG}")
+
+# Always tag the all-in image with it's own specific version.
+tag "${TAG}" "${TAG}"
+
+# Attach our specific ${TAG} to the suggested tags.
+for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
+
+  # If it's the latest version, tag the all-in image as such.
+  if [[ ${suggestion} == "latest" ]]; then
+    tag "${TAG}" "latest"
+  fi
+
+  # Cross match each suggested version with a possible variant
+  for variant in ${VARIANTS}; do
+    variant_base=$(echo "${variant}" | cut -d: -f1)
+
+    # Variants can be provided with aliases, ex: `arm:arm32v7`.  This loops takes care of that.
+    for alias in $(echo "${variant}" | tr ':' ' '); do
+
+      # If it's the latest version, tag each variant with a plain tag, ex: `:arm32v7`, or `:aarch64`.
+      if [[ "${suggestion}" == "latest" ]]; then
+        tag "${variant_base}" "${alias}"
+        continue
+      fi
+
+      # For a shortened versio, just prepend it to the variant name, ex: `:v4.1-arm`
+      tag "${variant}" "${suggestion}-${alias}"
+    done
   done
-
-  # Create a tag with a full version, and exact qemu architecture
-  docker tag  "${SLUG}:${image_type}"  "${SLUG}:${TAG}-${image_type}"
 done

@@ -21,7 +21,12 @@
         run: ls images/ | xargs -I % docker load -i "images/%"
 
       - name: Version-tag all images
-        run: ./scripts/docker-tag.sh  "${GITHUB_REPOSITORY,,}"  "${{QEMU_VERSION}}"
+        run: >
+          ./scripts/docker-tag.sh \
+            simple-qemu \
+            "${GITHUB_REPOSITORY,,}" \
+            "${{QEMU_VERSION}}" \
+            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
 
       - name: List all tagged images
         run: docker images ${GITHUB_REPOSITORY,,}
