@@ -20,7 +20,7 @@
       - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
-      - name: Version-tag all images
+      - name: Version-tag all Docker Hub images
         run: >
           ./scripts/docker-tag.sh \
             simple-qemu \
@@ -43,13 +43,17 @@
           pass: ${{ secrets.DOCKER_PASS }}
           description: true
 
+      # NOTE: Github registry doesn't support deleting images yet, so for now I'll push it to a playground repo…
+      - name: Version-tag all Gihub Registry images
+        run: >
+          ./scripts/github-registry-tag.sh \
+            simple-qemu \
+            "docker.pkg.github.com/meedamian/docker-ci" \
+            "${{QEMU_VERSION}}" \
+            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+
       - name: Login to Github Registry
         run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
-        # NOTE: Github registry doesn't support deleting images yet, so for now I'll push it to my playground repo…
       - name: Push all images to Github Registry
-        run: |
-          for tag in $(docker images ${GITHUB_REPOSITORY,,} --format "{{.Tag}}"); do
-            docker tag "${GITHUB_REPOSITORY,,}:${tag}" "docker.pkg.github.com/meedamian/docker-ci/simple-qemu:${tag}"
-            docker push "docker.pkg.github.com/meedamian/docker-ci/simple-qemu:${tag}"
-          done
+        run: docker images "docker.pkg.github.com/meedamian/docker-ci/*" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %

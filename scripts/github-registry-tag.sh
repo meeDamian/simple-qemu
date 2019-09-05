@@ -35,26 +35,21 @@ tag "${TAG}" "${TAG}" "latest"
 # Attach our specific ${TAG} to the suggested tags.
 for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
 
-  # If it's the latest version, tag the all-in image as such.
-  if [[ ${suggestion} == "latest" ]]; then
-    tag "${TAG}" "latest"
-  fi
-
   # Cross match each suggested version with a possible variant
   for variant in ${VARIANTS}; do
     variant_base=$(echo "${variant}" | cut -d: -f1)
 
     # Variants can be provided with aliases, ex: `arm:arm32v7`.  This loops takes care of that.
     for alias in $(echo "${variant}" | tr ':' ' '); do
-
-      # If it's the latest version, tag each variant with a plain tag, ex: `:arm32v7`, or `:aarch64`.
-      if [[ "${suggestion}" == "latest" ]]; then
-        tag "${variant_base}" "${alias}"
-        continue
-      fi
-
-      # For a shortened versio, just prepend it to the variant name, ex: `:v4.1-arm`
-      tag "${variant}" "${suggestion}-${alias}"
+      tag "${variant_base}" "${alias}" "${suggestion}"
+      tag "${variant_base}" "${suggestion}" "${alias}"
     done
   done
+
+  if [[  "${suggestion}" == "latest" ]]; then
+    tag "${TAG}" "${suggestion}" "${TAG}"
+    continue
+  fi
+
+  tag "${TAG}" "${suggestion}" "latest"
 done
