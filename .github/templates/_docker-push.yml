@@ -28,7 +28,7 @@
             "${{QEMU_VERSION}}" \
             "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
 
-      - name: List all tagged images
+      - name: List all Docker Hub tagged images
         run: docker images ${GITHUB_REPOSITORY,,}
 
       - name: Login to Docker Hub
@@ -51,6 +51,9 @@
             "docker.pkg.github.com/meedamian/docker-ci" \
             "${{QEMU_VERSION}}" \
             "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+
+      - name: List all Github Registry tagged images
+        run: docker images "docker.pkg.github.com/meedamian/docker-ci/*"
 
       - name: Login to Github Registry
         run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
