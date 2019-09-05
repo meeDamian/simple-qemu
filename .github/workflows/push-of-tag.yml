@@ -148,7 +148,7 @@ jobs:
             exit 1
           fi
 
-  docker-push:
+  docker-hub-push:
     name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
@@ -193,7 +193,7 @@ jobs:
           pass: ${{ secrets.DOCKER_PASS }}
           description: true
 
-  docker-push:
+  github-registry-push:
     name: Tag & deploy to Github Registry.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
