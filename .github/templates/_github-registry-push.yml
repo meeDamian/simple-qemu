@@ -1,5 +1,5 @@
   docker-push:
-    name: Tag & deploy to Docker Hub and Github registry.  Only after successful build, and test of a pushed git tag
+    name: Tag & deploy to Github Registry.  Only after successful build, and test of a pushed git tag
 
     runs-on: ubuntu-18.04
     needs: test
@@ -20,31 +20,8 @@
       - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
-      - name: Version-tag all Docker Hub images
-        run: >
-          ./scripts/docker-tag.sh \
-            simple-qemu \
-            "${GITHUB_REPOSITORY,,}" \
-            "${{QEMU_VERSION}}" \
-            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
-
-      - name: List all Docker Hub tagged images
-        run: docker images ${GITHUB_REPOSITORY,,}
-
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
-
-      - name: Push all images to Docker Hub
-        run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
-
-      - name: Sync README.md and Description to Docker Hub
-        uses: meeDamian/sync-readme@v1.0.5
-        with:
-          pass: ${{ secrets.DOCKER_PASS }}
-          description: true
-
       # NOTE: Github registry doesn't support deleting images yet, so for now I'll push it to a playground repo…
-      - name: Version-tag all Gihub Registry images
+      - name: Version-tag all images
         run: >
           ./scripts/github-registry-tag.sh \
             simple-qemu \
@@ -52,11 +29,11 @@
             "${{QEMU_VERSION}}" \
             "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
 
-      - name: List all Github Registry tagged images
+      - name: List all tagged images
         run: docker images "docker.pkg.github.com/meedamian/docker-ci/*"
 
       - name: Login to Github Registry
         run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
-      - name: Push all images to Github Registry
+      - name: Push all images
         run: docker images "docker.pkg.github.com/meedamian/docker-ci/*" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %

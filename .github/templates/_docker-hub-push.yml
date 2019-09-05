@@ -1,0 +1,44 @@
+  docker-push:
+    name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
+
+    runs-on: ubuntu-18.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v1.0.0
+
+      - name: Print Docker version
+        run: docker version
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: images
+
+      - name: Print sha256sum of all images
+        run: sha256sum images/*
+
+      - name: Load images locally
+        run: ls images/ | xargs -I % docker load -i "images/%"
+
+      - name: Version-tag all images
+        run: >
+          ./scripts/docker-hub-tag.sh \
+            simple-qemu \
+            "${GITHUB_REPOSITORY,,}" \
+            "${{QEMU_VERSION}}" \
+            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+
+      - name: List all tagged images
+        run: docker images ${GITHUB_REPOSITORY,,}
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
+
+      - name: Push all images
+        run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+
+      - name: Sync README.md and Description to Docker Hub
+        uses: meeDamian/sync-readme@v1.0.5
+        with:
+          pass: ${{ secrets.DOCKER_PASS }}
+          description: true

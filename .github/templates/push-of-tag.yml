@@ -12,6 +12,8 @@ jobs:
 
   {{ _test-job.yml }}
 
-  {{ _docker-push.yml }}
+  {{ _docker-hub-push.yml }}
+
+  {{ _github-registry-push.yml }}
 
   {{ _github-release.yml }}
