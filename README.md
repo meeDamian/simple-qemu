@@ -89,7 +89,7 @@ It's that _simple_ :).
 > **Note:** To learn what architectures are available for the given base image you can use `docker manifest inspect` command, for example:
 >
 > ```shell script
-> $ docker manifest inspect alpine | jq -r '.manifests[].platform | .os + "/" + .architecture + " " +.variant'
+> $ docker manifest inspect alpine | jq -r '.manifests[].platform | .os + "/" + .architecture + " " + .variant'
 > linux/amd64
 > linux/arm v6
 > linux/arm v7
