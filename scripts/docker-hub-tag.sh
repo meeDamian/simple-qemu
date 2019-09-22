@@ -12,7 +12,7 @@ SLUG=$2
 TAG=$3
 
 # All possible image variants as a space-separated string.  Aliases are accepted in a form of: `name:alias`.
-#   Example string: `"enable arm:arm32v6 aarch64:arm64v8 riscv64"`
+#   Example string: `"enable arm:arm32v6 aarch64:arm64 riscv64"`
 VARIANTS=$4
 
 # This function creates requested Docker Tags, or just prints the commands if `DRY_RUN=1` is set.
@@ -26,7 +26,7 @@ tag() {
   ${CMD}
 }
 
-# Get short-tag recommenfations based on `git tag` output.
+# Get short-tag recommendations based on `git tag` output.
 SUGGESTED_TAGS=$(./scripts/shortcut-tags.sh "${TAG}")
 
 # Always tag the all-in image with it's own specific version.
@@ -53,7 +53,7 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
         continue
       fi
 
-      # For a shortened versio, just prepend it to the variant name, ex: `:v4.1-arm`
+      # For a shortened version, just prepend it to the variant name, ex: `:v4.1-arm`
       tag "${variant_base}" "${suggestion}-${alias}"
     done
   done

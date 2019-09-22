@@ -8,7 +8,7 @@ This project aims to make cross-compilation, and running programs compiled for a
 Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), and architectures that can be emulated are:
 
 1. `arm` (AKA `arm32v7`)
-1. `aarch64` (AKA `arm64v8`)
+1. `aarch64` (AKA `arm64v8`, `arm64`)
 1. `riscv32`
 1. `riscv64`
 

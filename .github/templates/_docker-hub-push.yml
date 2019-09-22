@@ -26,7 +26,7 @@
             simple-qemu \
             "${GITHUB_REPOSITORY,,}" \
             "${{QEMU_VERSION}}" \
-            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+            "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
         run: docker images ${GITHUB_REPOSITORY,,}
