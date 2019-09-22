@@ -18,28 +18,28 @@ Simple tags
 
 * `v4.1.0`, `v4.1`, `v4`, `latest`
 * `v4.1.0-arm`, `v4.1.0-arm32v7`, `v4.1-arm`, `v4.1-arm32v7`, `v4-arm`, `v4-arm32v7`, `arm`, `arm32v7`
-* `v4.1.0-aarch64`, `v4.1.0-arm64v8`, `v4.1-aarch64`, `v4.1-arm64v8`, `v4-aarch64`, `v4-arm364v8`, `aarch64`, `arm64v8`
+* `v4.1.0-aarch64`, `v4.1.0-arm64`, `v4.1-aarch64`, `v4.1-arm64`, `v4-aarch64`, `v4-arm364`, `aarch64`, `arm64`
 * `v4.1.0-riscv32`, `v4.1-riscv32`, `v4-riscv32`, `riscv32`
 * `v4.1.0-riscv64`, `v4.1-riscv64`, `v4-riscv64`, `riscv64`
 * `v4.1.0-enable`, `v4.1-enable`, `v4-enable`, `enable`
 
 * `v4.0.0`, `v4.0`
 * `v4.0.0-arm`, `v4.0.0-arm32v7`, `v4.0-arm`, `v4.0-arm32v7`
-* `v4.0.0-aarch64`, `v4.0.0-arm64v8`, `v4.0-aarch64`, `v4.0-arm64v8`
+* `v4.0.0-aarch64`, `v4.0.0-arm64`, `v4.0-aarch64`, `v4.0-arm64`
 * `v4.0.0-riscv32`, `v4.0-riscv32`
 * `v4.0.0-riscv64`, `v4.0-riscv64`
 * `v4.0.0-enable`, `v4.0-enable`
 
 * `v3.1.1`, `v3.1`, `v3`
 * `v3.1.1-arm`, `v3.1.1-arm32v7`, `v3.1-arm`, `v3.1-arm32v7`, `v3-arm`, `v3-arm32v7`
-* `v3.1.1-aarch64`, `v3.1.1-arm64v8`, `v3.1-aarch64`, `v3.1-arm64v8`, `v3-aarch64`, `v3-arm64v8`
+* `v3.1.1-aarch64`, `v3.1.1-arm64`, `v3.1-aarch64`, `v3.1-arm64`, `v3-aarch64`, `v3-arm64`
 * `v3.1.1-riscv32`, `v3.1-riscv32`, `v3-riscv32`
 * `v3.1.1-riscv64`, `v3.1-riscv64`, `v3-riscv64`
 * `v3.1.1-enable`, `v3.1-enable`, `v3-enable`
 
 * `v3.1.0`
 * `v3.1.0-arm`, `v3.1.0-arm32v7`
-* `v3.1.0-aarch64`, `v3.1.0-arm64v8`
+* `v3.1.0-aarch64`, `v3.1.0-arm64`
 * `v3.1.0-riscv32`
 * `v3.1.0-riscv64`
 * `v3.1.0-enable`

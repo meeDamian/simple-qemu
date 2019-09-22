@@ -176,7 +176,7 @@ jobs:
             simple-qemu \
             "${GITHUB_REPOSITORY,,}" \
             "v4.1.0" \
-            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+            "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
         run: docker images ${GITHUB_REPOSITORY,,}
@@ -221,12 +221,12 @@ jobs:
             simple-qemu \
             "docker.pkg.github.com/meedamian/simple-qemu" \
             "v4.1.0" \
-            "enable arm:arm32v7 aarch64:arm64v8 riscv32 riscv64"
+            "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
         run: docker images "docker.pkg.github.com/meedamian/simple-qemu/*"
 
-      # Temporarily disabled, since it's just borked…
+      # NOTE: Temporarily disabled, since it's just borked…
 #      - name: Login to Github Registry
 #        run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 

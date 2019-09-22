@@ -12,7 +12,7 @@ SLUG=$2
 TAG=$3
 
 # All possible image variants as a space-separated string.  Aliases are accepted in a form of: `name:alias`.
-#   Example string: `"enable arm:arm32v6 aarch64:arm64v8 riscv64"`
+#   Example string: `"enable arm:arm32v6 aarch64:arm64 riscv64"`
 VARIANTS=$4
 
 # This function creates requested Docker Tags, or just prints the commands if `DRY_RUN=1` is set.
