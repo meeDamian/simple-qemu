@@ -55,6 +55,11 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
 
       # For a shortened version, just prepend it to the variant name, ex: `:v4.1-arm`
       tag "${variant_base}" "${suggestion}-${alias}"
+
+      # Create tags that remain even if git-tag gets overriden, ex: `:v4.1.0-arm+6c07e8223e22cb2a6c02a0f98e3784d2b063e9c8`
+      if [[ "${suggestion}" == "${TAG}" ]]; then
+        tag "${variant_base}" "${suggestion}-${alias}-$(git rev-parse HEAD)"
+      fi
     done
   done
 done
