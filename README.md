@@ -99,13 +99,83 @@ It's that _simple_ :).
 > linux/s390x
 >```
 
-## Bugs and feedback
+
+Performance
+------------
+
+**Emulation can be nightmarishly slow.**  [Here's] a (not very scientific) comparison.  It uses a [random project] of mine, and compares it again't baseline (no emulation), and another project I know of ([`multiarch/qemu-user-static`]).
+
+
+<table>
+    <thead>
+    <tr>
+        <th>`qemu` version</th>
+        <th>emulated architecture</th>
+        <th>qemu provider</th>
+        <th>time</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td colspan="3">baseline</td>
+        <td>**1m 56s**</td>
+    </tr>
+    <tr>
+        <td rowspan="4">v3.1.1</td>
+        <td rowspan="2">arm32v7</td>
+        <td>simple</td>
+        <td>24m 5s</td>
+    </tr>
+    <tr>
+        <td>multi</td>
+        <td>22m 19s</td>
+    </tr>
+    <tr>
+        <td rowspan="2">arm64v8</td>
+        <td>simple</td>
+        <td>23m 6s</td>
+    </tr>
+    <tr>
+        <td>multi</td>
+        <td>23m 27s</td>
+    </tr>
+    <tr>
+        <td rowspan="4">v4.1.0</td>
+        <td rowspan="2">arm32v7</td>
+        <td>simple</td>
+        <td>24m 36s</td>
+    </tr>
+    <tr>
+        <td>multi</td>
+        <td>25m 34s</td>
+    </tr>
+    <tr>
+        <td rowspan="2">arm64v8</td>
+        <td>simple</td>
+        <td>33m 30s</td>
+    </tr>
+    <tr>
+        <td>multi</td>
+        <td>32m 23s</td>
+    </tr>
+    </tbody>
+</table>
+
+
+[Here's]: https://github.com/meeDamian/docker-berkeleydb/commit/9e87d11314c2522726497f0c6059e61a31298e7f/checks
+[`multiarch/qemu-user-static`]: https://github.com/multiarch/qemu-user-static
+[random project]: https://github.com/lncm/docker-berkeleydb/
+
+
+Bugs and feedback
+------------------
 
 If you discover a bug please report it [here](https://github.com/meeDamian/simple-qemu/issues/new).  Express gratitude [here](https://donate.meedamian.com).
 
 Mail me at bugs@meedamian.com, or on twitter [@meeDamian](http://twitter.com/meedamian).
 
 
-## License
+License
+--------
 
 MIT @ [Damian Mee](https://meedamian.com)
