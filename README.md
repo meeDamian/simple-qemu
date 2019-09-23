@@ -109,7 +109,7 @@ Performance
 <table>
     <thead>
     <tr>
-        <th>`qemu` version</th>
+        <th><code>qemu</code> version</th>
         <th>emulated architecture</th>
         <th>qemu provider</th>
         <th>time</th>
@@ -118,7 +118,7 @@ Performance
     <tbody>
     <tr>
         <td colspan="3">baseline</td>
-        <td>**1m 56s**</td>
+        <td><b>1m 56s</b></td>
     </tr>
     <tr>
         <td rowspan="4">v3.1.1</td>
