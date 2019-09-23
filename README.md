@@ -110,7 +110,7 @@ Performance
     <thead>
     <tr>
         <th rowspan="2"><code>qemu</code> version</th>
-        <th rowspan="2">emulated architecture</th>
+        <th rowspan="2">emulated<br/>architecture</th>
         <th colspan="2">time</th>
     </tr>
     <tr>
@@ -118,12 +118,12 @@ Performance
         <th><code>multiarch/qemu-user-static</code></th>
     </tr>
     </thead>
-    <tbody>
+    <tbody align="center">
     <tr>
-        <td colspan="2" align="center">baseline (<code>amd64</code>)</td>
-        <td colspan="2" align="center"><b>1m 56s</b></td>
+        <td colspan="2">baseline (<code>amd64</code>)</td>
+        <td colspan="2"><b>1m 56s</b></td>
     </tr>
-    <tr align="center">
+    <tr>
         <td rowspan="2">v3.1.1</td>
         <td>arm32v7</td>
         <td>24m 5s</td>
