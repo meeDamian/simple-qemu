@@ -109,53 +109,40 @@ Performance
 <table>
     <thead>
     <tr>
-        <th><code>qemu</code> version</th>
-        <th>emulated architecture</th>
-        <th>qemu provider</th>
-        <th>time</th>
+        <th rowspan="2"><code>qemu</code> version</th>
+        <th rowspan="2">emulated architecture</th>
+        <th colspan="2">time</th>
     </tr>
     </thead>
     <tbody>
     <tr>
-        <td colspan="3" align="center">baseline</td>
-        <td><b>1m 56s</b></td>
+        <td><code>meedamian/simple-qemu</code></td>
+        <td><code>multiarch/qemu-user-static</code></td>
     </tr>
     <tr>
-        <td rowspan="4">v3.1.1</td>
-        <td rowspan="2">arm32v7</td>
-        <td>simple</td>
+        <td colspan="2">baseline (<code>amd64</code>)</td>
+        <td colspan="2"><b>1m 56s</b></td>
+    </tr>
+    <tr>
+        <td rowspan="2">v3.1.1</td>
+        <td>arm32v7</td>
         <td>24m 5s</td>
-    </tr>
-    <tr>
-        <td>multi</td>
         <td>22m 19s</td>
     </tr>
     <tr>
-        <td rowspan="2">arm64v8</td>
-        <td>simple</td>
+        <td>arm64v8</td>
         <td>23m 6s</td>
-    </tr>
-    <tr>
-        <td>multi</td>
         <td>23m 27s</td>
     </tr>
     <tr>
-        <td rowspan="4">v4.1.0</td>
-        <td rowspan="2">arm32v7</td>
-        <td>simple</td>
+        <td rowspan="2">v4.1.0</td>
+        <td>arm32v7</td>
         <td>24m 36s</td>
-    </tr>
-    <tr>
-        <td>multi</td>
         <td>25m 34s</td>
     </tr>
     <tr>
-        <td rowspan="2">arm64v8</td>
-        <td>simple</td>
+        <td>arm64v8</td>
         <td>33m 30s</td>
-    </tr>
-    <tr>
-        <td>multi</td>
         <td>32m 23s</td>
     </tr>
     </tbody>
