@@ -117,7 +117,7 @@ Performance
     </thead>
     <tbody>
     <tr>
-        <td colspan="3">baseline</td>
+        <td colspan="3" align="center">baseline</td>
         <td><b>1m 56s</b></td>
     </tr>
     <tr>
