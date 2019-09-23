@@ -123,27 +123,27 @@ Performance
         <td colspan="2" align="center">baseline (<code>amd64</code>)</td>
         <td colspan="2" align="center"><b>1m 56s</b></td>
     </tr>
-    <tr>
+    <tr align="center">
         <td rowspan="2">v3.1.1</td>
         <td>arm32v7</td>
         <td>24m 5s</td>
-        <td>22m 19s</td>
+        <td><b>22m 19s</b></td>
     </tr>
     <tr>
         <td>arm64v8</td>
-        <td>23m 6s</td>
+        <td><b>23m 6s</b></td>
         <td>23m 27s</td>
     </tr>
     <tr>
         <td rowspan="2">v4.1.0</td>
         <td>arm32v7</td>
-        <td>24m 36s</td>
+        <td><b>24m 36s</b></td>
         <td>25m 34s</td>
     </tr>
     <tr>
         <td>arm64v8</td>
         <td>33m 30s</td>
-        <td>32m 23s</td>
+        <td><b>32m 23s</b></td>
     </tr>
     </tbody>
 </table>
