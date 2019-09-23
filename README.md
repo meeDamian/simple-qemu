@@ -120,8 +120,8 @@ Performance
     </thead>
     <tbody>
     <tr>
-        <td colspan="2">baseline (<code>amd64</code>)</td>
-        <td colspan="2"><b>1m 56s</b></td>
+        <td colspan="2" align="center">baseline (<code>amd64</code>)</td>
+        <td colspan="2" align="center"><b>1m 56s</b></td>
     </tr>
     <tr>
         <td rowspan="2">v3.1.1</td>
