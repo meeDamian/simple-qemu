@@ -113,12 +113,12 @@ Performance
         <th rowspan="2">emulated architecture</th>
         <th colspan="2">time</th>
     </tr>
+    <tr>
+        <th><code>meedamian/simple-qemu</code></th>
+        <th><code>multiarch/qemu-user-static</code></th>
+    </tr>
     </thead>
     <tbody>
-    <tr>
-        <td><code>meedamian/simple-qemu</code></td>
-        <td><code>multiarch/qemu-user-static</code></td>
-    </tr>
     <tr>
         <td colspan="2">baseline (<code>amd64</code>)</td>
         <td colspan="2"><b>1m 56s</b></td>
