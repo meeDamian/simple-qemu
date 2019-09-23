@@ -114,8 +114,8 @@ Performance
         <th colspan="2">time</th>
     </tr>
     <tr>
-        <th><code>meedamian/simple-qemu</code></th>
-        <th><code>multiarch/qemu-user-static</code></th>
+        <th><a href="#meedamiansimple-qemu"><code>simple-qemu</code></a></th>
+        <th><a href="https://github.com/multiarch/qemu-user-static"><code>qemu-user-static</code></a></th>
     </tr>
     </thead>
     <tbody align="center">
