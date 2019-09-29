@@ -21,20 +21,20 @@
         run: sha256sum images/*
 
       - name: Load relevant image locally
-        run: docker load -i "images/simple-qemu-${{ matrix.arch }}.tgz"
+        run: docker load -i "images/simple-qemu-${{matrix.arch}}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "simple-qemu:${{ matrix.arch }}" -p yes
+        run: docker run --rm --privileged "simple-qemu:${{matrix.arch}}" -p yes
 
       - name: Try to run arch-specific image
         run: |
-          IMAGE="${{ matrix.arch }}/alpine"
+          IMAGE="${{matrix.arch}}/alpine"
 
-          if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
+          if [[ "${{matrix.arch}}" == "riscv64" ]]; then
             IMAGE="carlosedp/debian:sid-riscv64"
           fi
 
-          if [[ "${{ matrix.arch }}" == "arm" ]]; then
+          if [[ "${{matrix.arch}}" == "arm" ]]; then
             IMAGE="arm32v7/alpine"
           fi
 

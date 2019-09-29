@@ -1,43 +1,42 @@
   build:
     name: Build all images & upload them as build artifacts
+    env:
+      DOCKER_BUILDKIT: 1
+
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1.0.0
 
       - name: Build base image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=${{QEMU_VERSION}}
           --tag       midstate
-          --file      Dockerfile
           --target    builder
 
       - name: Build :enable image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=${{QEMU_VERSION}}
           --tag       simple-qemu:enable
-          --file      Dockerfile
           --target    enable
 
       - name: Build :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
             echo "Building simple-qemu:${arch}…"
-            DOCKER_BUILDKIT=1 docker build . \
+            docker build . \
               --build-arg QEMU_VERSION=${{QEMU_VERSION}} \
               --build-arg ARCH=${arch} \
               --tag       simple-qemu:${arch} \
-              --file      Dockerfile \
               --target    single
           done
 
       - name: Build :${{QEMU_VERSION}} (all-included) image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=${{QEMU_VERSION}}
           --tag       simple-qemu:${{QEMU_VERSION}}
-          --file      Dockerfile
           --target    comprehensive
 
       - name: List all built images

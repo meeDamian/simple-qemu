@@ -20,25 +20,30 @@
       - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
+      - name: Setup environment
+        run: |
+          echo ::set-env name=DOCKER_USER::"${GITHUB_ACTOR,,}"
+          echo ::set-env name=DOCKER_SLUG::"${GITHUB_REPOSITORY,,}"
+
       - name: Version-tag all images
         run: >
           ./scripts/docker-hub-tag.sh \
             simple-qemu \
-            "${GITHUB_REPOSITORY,,}" \
+            "${DOCKER_SLUG}" \
             "${{QEMU_VERSION}}" \
             "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
-        run: docker images ${GITHUB_REPOSITORY,,}
+        run: docker images "${DOCKER_SLUG}"
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
+        run: echo "${{secrets.DOCKER_TOKEN}}" | docker login -u="${DOCKER_USER}" --password-stdin
 
       - name: Push all images
-        run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+        run: docker images "${DOCKER_SLUG}" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
       - name: Sync README.md and Description to Docker Hub
         uses: meeDamian/sync-readme@v1.0.5
         with:
-          pass: ${{ secrets.DOCKER_PASS }}
+          pass: ${{secrets.DOCKER_TOKEN}}
           description: true
