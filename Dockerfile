@@ -40,9 +40,6 @@ RUN git verify-tag ${QEMU_VERSION}
 #   Note: put it as far down as possible, so that stuff above doesn't get invalidated when this file changes
 COPY built-architectures.txt /
 
-# Remove all comments, new lines etc from the file.  Only leave the essence.
-RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
-
 RUN echo "Target architectures to be built: $(cat /built-architectures.txt | tr '\n' ' ')"
 
 # Configure output binaries to rely on no external dependencies (static), and only build for specified architectures

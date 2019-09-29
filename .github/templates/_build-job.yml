@@ -7,6 +7,9 @@
     steps:
       - uses: actions/checkout@v1.0.0
 
+      - name: Extract essence from built-architectures.txt
+        run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
+
       - name: Build base image
         run: >
           docker build .
