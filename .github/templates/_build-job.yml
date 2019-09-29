@@ -7,6 +7,8 @@
     steps:
       - uses: actions/checkout@v1.0.0
 
+      # NOTE: This is also handled within Dockerfile, we *also* do it here,
+      #         because of the step building single-arch images below.
       - name: Extract essence from built-architectures.txt
         run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
