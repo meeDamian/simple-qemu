@@ -16,47 +16,43 @@ on:
 jobs:
   build:
     name: Build all images & upload them as build artifacts
+    env:
+      DOCKER_BUILDKIT: 1
+
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1.0.0
 
-      - name: Extract essence from built-architectures.txt
-        run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
-
       - name: Build base image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       midstate
-          --file      Dockerfile
           --target    builder
 
       - name: Build :enable image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       simple-qemu:enable
-          --file      Dockerfile
           --target    enable
 
       - name: Build :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
             echo "Building simple-qemu:${arch}…"
-            DOCKER_BUILDKIT=1 docker build . \
+            docker build . \
               --build-arg QEMU_VERSION=v4.1.0 \
               --build-arg ARCH=${arch} \
               --tag       simple-qemu:${arch} \
-              --file      Dockerfile \
               --target    single
           done
 
       - name: Build :v4.1.0 (all-included) image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       simple-qemu:v4.1.0
-          --file      Dockerfile
           --target    comprehensive
 
       - name: List all built images
@@ -119,20 +115,20 @@ jobs:
         run: sha256sum images/*
 
       - name: Load relevant image locally
-        run: docker load -i "images/simple-qemu-${{ matrix.arch }}.tgz"
+        run: docker load -i "images/simple-qemu-${{matrix.arch}}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "simple-qemu:${{ matrix.arch }}" -p yes
+        run: docker run --rm --privileged "simple-qemu:${{matrix.arch}}" -p yes
 
       - name: Try to run arch-specific image
         run: |
-          IMAGE="${{ matrix.arch }}/alpine"
+          IMAGE="${{matrix.arch}}/alpine"
 
-          if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
+          if [[ "${{matrix.arch}}" == "riscv64" ]]; then
             IMAGE="carlosedp/debian:sid-riscv64"
           fi
 
-          if [[ "${{ matrix.arch }}" == "arm" ]]; then
+          if [[ "${{matrix.arch}}" == "arm" ]]; then
             IMAGE="arm32v7/alpine"
           fi
 
@@ -170,27 +166,32 @@ jobs:
       - name: Load images locally
         run: ls images/ | xargs -I % docker load -i "images/%"
 
+      - name: Setup environment
+        run: |
+          echo ::set-env name=DOCKER_USER::"${GITHUB_ACTOR,,}"
+          echo ::set-env name=DOCKER_SLUG::"${GITHUB_REPOSITORY,,}"
+
       - name: Version-tag all images
         run: >
           ./scripts/docker-hub-tag.sh \
             simple-qemu \
-            "${GITHUB_REPOSITORY,,}" \
+            "${DOCKER_SLUG}" \
             "v4.1.0" \
             "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
-        run: docker images ${GITHUB_REPOSITORY,,}
+        run: docker images "${DOCKER_SLUG}"
 
       - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u="${GITHUB_ACTOR,,}" --password-stdin
+        run: echo "${{secrets.DOCKER_TOKEN}}" | docker login -u="${DOCKER_USER}" --password-stdin
 
       - name: Push all images
-        run: docker images ${GITHUB_REPOSITORY,,} --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+        run: docker images "${DOCKER_SLUG}" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
       - name: Sync README.md and Description to Docker Hub
         uses: meeDamian/sync-readme@v1.0.5
         with:
-          pass: ${{ secrets.DOCKER_PASS }}
+          pass: ${{secrets.DOCKER_TOKEN}}
           description: true
 
   github-registry-push:
@@ -228,7 +229,7 @@ jobs:
 
       # NOTE: Temporarily disabled, since it's just borked…
 #      - name: Login to Github Registry
-#        run: echo "${{ secrets.YET_ANOTHER_GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
+#        run: echo "${{secrets.YET_ANOTHER_GITHUB_TOKEN}}" | docker login docker.pkg.github.com -u="${GITHUB_ACTOR,,}" --password-stdin
 
 #      - name: Push all images
 #        run: docker images "docker.pkg.github.com/meedamian/simple-qemu/*" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
@@ -249,7 +250,7 @@ jobs:
       - name: Upload binaries to Github Release
         uses: meeDamian/github-release@v1.0.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{secrets.GITHUB_TOKEN}}
           body: This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/v4.1.0
           gzip: false
           files: binaries/*

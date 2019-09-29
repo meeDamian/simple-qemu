@@ -16,47 +16,43 @@ on:
 jobs:
   build:
     name: Build all images & upload them as build artifacts
+    env:
+      DOCKER_BUILDKIT: 1
+
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1.0.0
 
-      - name: Extract essence from built-architectures.txt
-        run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
-
       - name: Build base image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       midstate
-          --file      Dockerfile
           --target    builder
 
       - name: Build :enable image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       simple-qemu:enable
-          --file      Dockerfile
           --target    enable
 
       - name: Build :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
             echo "Building simple-qemu:${arch}…"
-            DOCKER_BUILDKIT=1 docker build . \
+            docker build . \
               --build-arg QEMU_VERSION=v4.1.0 \
               --build-arg ARCH=${arch} \
               --tag       simple-qemu:${arch} \
-              --file      Dockerfile \
               --target    single
           done
 
       - name: Build :v4.1.0 (all-included) image
         run: >
-          DOCKER_BUILDKIT=1 docker build .
+          docker build .
           --build-arg QEMU_VERSION=v4.1.0
           --tag       simple-qemu:v4.1.0
-          --file      Dockerfile
           --target    comprehensive
 
       - name: List all built images
@@ -119,20 +115,20 @@ jobs:
         run: sha256sum images/*
 
       - name: Load relevant image locally
-        run: docker load -i "images/simple-qemu-${{ matrix.arch }}.tgz"
+        run: docker load -i "images/simple-qemu-${{matrix.arch}}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "simple-qemu:${{ matrix.arch }}" -p yes
+        run: docker run --rm --privileged "simple-qemu:${{matrix.arch}}" -p yes
 
       - name: Try to run arch-specific image
         run: |
-          IMAGE="${{ matrix.arch }}/alpine"
+          IMAGE="${{matrix.arch}}/alpine"
 
-          if [[ "${{ matrix.arch }}" == "riscv64" ]]; then
+          if [[ "${{matrix.arch}}" == "riscv64" ]]; then
             IMAGE="carlosedp/debian:sid-riscv64"
           fi
 
-          if [[ "${{ matrix.arch }}" == "arm" ]]; then
+          if [[ "${{matrix.arch}}" == "arm" ]]; then
             IMAGE="arm32v7/alpine"
           fi
 
