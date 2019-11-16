@@ -31,14 +31,14 @@ jobs:
       - name: Build base image
         run: >
           docker build .
-          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg QEMU_VERSION=v4.1.1
           --tag       midstate
           --target    builder
 
       - name: Build :enable image
         run: >
           docker build .
-          --build-arg QEMU_VERSION=v4.1.0
+          --build-arg QEMU_VERSION=v4.1.1
           --tag       simple-qemu:enable
           --target    enable
 
@@ -47,17 +47,17 @@ jobs:
           for arch in $(cat built-architectures.txt); do
             echo "Building simple-qemu:${arch}…"
             docker build . \
-              --build-arg QEMU_VERSION=v4.1.0 \
+              --build-arg QEMU_VERSION=v4.1.1 \
               --build-arg ARCH=${arch} \
               --tag       simple-qemu:${arch} \
               --target    single
           done
 
-      - name: Build :v4.1.0 (all-included) image
+      - name: Build :v4.1.1 (all-included) image
         run: >
           docker build .
-          --build-arg QEMU_VERSION=v4.1.0
-          --tag       simple-qemu:v4.1.0
+          --build-arg QEMU_VERSION=v4.1.1
+          --tag       simple-qemu:v4.1.1
           --target    comprehensive
 
       - name: List all built images
@@ -86,7 +86,7 @@ jobs:
           ID=$(docker create midstate)
           docker cp  "${ID}:/binaries/"  .
           docker rm "${ID}"
-          gzip -S "-v4.1.0.gz" binaries/*
+          gzip -S "-v4.1.1.gz" binaries/*
 
       - name: Print sha256sum of all binaries
         run: sha256sum binaries/*
@@ -144,8 +144,8 @@ jobs:
         run: |
           GIT_VER="$(echo ${GITHUB_REF} | awk -F/ '{print $NF}')"
 
-          if [ "${GIT_VER}" != "v4.1.0" ]; then
-            printf "\nVersion mismatch!  Tagged as %s, while file claims %s\n\n" "${GIT_VER}" "v4.1.0"
+          if [ "${GIT_VER}" != "v4.1.1" ]; then
+            printf "\nVersion mismatch!  Tagged as %s, while file claims %s\n\n" "${GIT_VER}" "v4.1.1"
             exit 1
           fi
 
@@ -181,7 +181,7 @@ jobs:
           ./scripts/docker-hub-tag.sh \
             simple-qemu \
             "${DOCKER_SLUG}" \
-            "v4.1.0" \
+            "v4.1.1" \
             "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
@@ -226,7 +226,7 @@ jobs:
           ./scripts/github-registry-tag.sh \
             simple-qemu \
             "docker.pkg.github.com/meedamian/simple-qemu" \
-            "v4.1.0" \
+            "v4.1.1" \
             "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
 
       - name: List all tagged images
@@ -256,6 +256,6 @@ jobs:
         uses: meeDamian/github-release@v1.0.0
         with:
           token: ${{secrets.GITHUB_TOKEN}}
-          body: This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/v4.1.0
+          body: This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/v4.1.1
           gzip: false
           files: binaries/*
