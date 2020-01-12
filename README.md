@@ -16,12 +16,19 @@ Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), an
 Simple tags
 -----------
 
-* `v4.1.0`, `v4.1`, `v4`, `latest`
-* `v4.1.0-arm`, `v4.1.0-arm32v7`, `v4.1-arm`, `v4.1-arm32v7`, `v4-arm`, `v4-arm32v7`, `arm`, `arm32v7`
-* `v4.1.0-aarch64`, `v4.1.0-arm64`, `v4.1-aarch64`, `v4.1-arm64`, `v4-aarch64`, `v4-arm364`, `aarch64`, `arm64`
-* `v4.1.0-riscv32`, `v4.1-riscv32`, `v4-riscv32`, `riscv32`
-* `v4.1.0-riscv64`, `v4.1-riscv64`, `v4-riscv64`, `riscv64`
-* `v4.1.0-enable`, `v4.1-enable`, `v4-enable`, `enable`
+* `v4.2.0`, `v4.2`, `v4`, `latest`
+* `v4.2.0-arm`, `v4.2.0-arm32v7`, `v4.2-arm`, `v4.2-arm32v7`, `v4-arm`, `v4-arm32v7`, `arm`, `arm32v7`
+* `v4.2.0-aarch64`, `v4.2.0-arm64`, `v4.2-aarch64`, `v4.2-arm64`, `v4-aarch64`, `v4-arm64`, `aarch64`, `arm64`
+* `v4.2.0-riscv32`, `v4.2-riscv32`, `v4-riscv32`, `riscv32`
+* `v4.2.0-riscv64`, `v4.2-riscv64`, `v4-riscv64`, `riscv64`
+* `v4.2.0-enable`, `v4.2-enable`, `v4-enable`, `enable`
+
+* `v4.1.0`, `v4.1`
+* `v4.1.0-arm`, `v4.1.0-arm32v7`, `v4.1-arm`, `v4.1-arm32v7`
+* `v4.1.0-aarch64`, `v4.1.0-arm64`, `v4.1-aarch64`, `v4.1-arm64`
+* `v4.1.0-riscv32`, `v4.1-riscv32`
+* `v4.1.0-riscv64`, `v4.1-riscv64`
+* `v4.1.0-enable`, `v4.1-enable`
 
 * `v4.0.0`, `v4.0`
 * `v4.0.0-arm`, `v4.0.0-arm32v7`, `v4.0-arm`, `v4.0-arm32v7`
@@ -49,9 +56,9 @@ Simple tags
 
 There are 3 distinct categories of images above:
 
-1. An image that contains binaries for [all architectures].  Tagged with a version alone, ex: `:v4.1.0`, or `:latest`.
-1. An enable-emulation only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v4.1.0-enable`, or `:enable`.
-1. A single-architecture image.  These images contain only a single architecture and emulation enable script.  Tagged with the name of the architecture, ex: `v4.1.0-arm`, or `aarch64`.
+1. An image that contains binaries for [all architectures].  Tagged with a version alone, ex: `:v4.2.0`, or `:latest`.
+1. An enable-emulation only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v4.2.0-enable`, or `:enable`.
+1. A single-architecture image.  These images contain only a single architecture and emulation enable script.  Tagged with the name of the architecture, ex: `v4.2.0-arm`, or `aarch64`.
 
 [all architectures]: ./built-architectures.txt
 
@@ -79,7 +86,7 @@ docker run --rm --privileged meedamian/simple-qemu -p yes
 And then in your `Dockerfile` specify exact base architecture, you want to use:
 
 ```Dockerfile
-FROM arm32v7/alpine:3.10
+FROM arm32v7/alpine:3.11
 
 # Everything written here will be run on an emulated architecture
 ```
