@@ -49,7 +49,7 @@ RUN echo "Target architectures to be built: $(cat /built-architectures.txt | tr 
 RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs -I{} echo "{}-linux-user" | tr '\n' ',' | head -c-1)
 
 # make :)
-# NOTE: `-j3` used instead of `-j$(nproc)`, based on better results here:
+# NOTE: `-j3` used instead of `-j$(nproc)`, based on better results, see:
 #   https://github.com/meeDamian/docker-bitcoind/commit/40fe90c026399f2d5c2de35535006572e14d24db/checks
 RUN make -j3
 
