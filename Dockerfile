@@ -17,7 +17,7 @@ ENV KEYS E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
 
 # Try to fetch key from keyservers listed below.  On first success terminate with `exit 0`.  If loop is not interrupted,
 #   it means all attempts failed, and `exit 1` is called.
-RUN for SRV in hkp://p80.pool.sks-keyservers.net:80  ha.pool.sks-keyservers.net  keyserver.pgp.com  pgp.mit.edu; do \
+RUN for SRV in keyserver.ubuntu.com  hkp://p80.pool.sks-keyservers.net:80  ha.pool.sks-keyservers.net  keyserver.pgp.com  pgp.mit.edu; do \
         timeout 9s  gpg  --keyserver "${SRV}"  --recv-keys ${KEYS}  >/dev/null 2<&1 && \
             { echo "OK:  ${SRV}" && exit 0; } || \
             { echo "ERR: ${SRV} fail=$?"; } ; \
