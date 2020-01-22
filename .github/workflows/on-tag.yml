@@ -50,6 +50,15 @@ jobs:
       - name: Extract essence from built-architectures.txt
         run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
+      - name: Print ENV VARs set above
+        run: |
+          printf "Git tag & arch processed:\n"
+          printf "    APP: %s\n"  "${APP}"
+          printf "    TAG: %s\n"  "${TAG}"
+          printf "VERSION: %s\n"  "${VERSION}"
+          printf "  BUILD: %s\n"  "${BUILD}"
+          printf "  archs: %s\n"  "$(cat ./built-architectures.txt | tr '\n' ' ')"
+
       - name: Build base image
         run: >
           docker build --no-cache .
@@ -70,7 +79,6 @@ jobs:
           --target    comprehensive
           --build-arg "VERSION=${VERSION}"
           --tag       "${APP}:${VERSION}"
-
 
       - name: Package :<single-arch> images
         run: |
@@ -118,6 +126,7 @@ jobs:
           name: binaries
           path: binaries/
 
+
   test:
     name: Test if running arch-specific images works
     runs-on: ubuntu-18.04
@@ -149,7 +158,7 @@ jobs:
         run: docker load -i "docker-images/${APP}-${{matrix.arch}}.tgz"
 
       - name: Enable emulation
-          run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
+        run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
 
       - name: Try to run riscv64 image
         if: matrix.arch == 'riscv64'
@@ -163,6 +172,7 @@ jobs:
         if: matrix.arch != 'riscv64' && matrix.arch != 'arm'
         run: docker run ${{matrix.arch}}/alpine uname -a
 
+
   docker-hub-push:
     name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
 
@@ -175,7 +185,7 @@ jobs:
         run: |
           echo ::set-env name=DOCKER_USER::"${GITHUB_ACTOR,,}"
 
-          SLUG="$(echo ${GITHUB_REPOSITORY,,} | sed 's/docker-//')"
+          SLUG="$(echo "${GITHUB_REPOSITORY,,}" | sed 's/docker-//')"
           echo ::set-env name=SLUG::"${SLUG}"
 
           echo ::set-env name=APP::"$(echo "${SLUG}" | awk -F/ '{print $NF}')"
@@ -184,68 +194,85 @@ jobs:
           echo ::set-env name=TAG::"${TAG}"
 
           echo ::set-env name=VERSION::"$(echo "${TAG}" | cut -d+ -f1)"
+          echo ::set-env name=BUILD::"$(echo "+${TAG}" | cut -d+ -f3)"
 
       - name: Print just set ENV VARs
         run: |
           printf "Just set env vars:\n"
+          printf "   USER: %s\n"  "${DOCKER_USER}"
           printf "    TAG: %s\n"  "${TAG}"
           printf "   SLUG: %s\n"  "${SLUG}"
           printf "    APP: %s\n"  "${APP}"
           printf "VERSION: %s\n"  "${VERSION}"
+          printf "  BUILD: %s\n"  "${BUILD}"
 
-      - name: Download all build artifacts
+      - name: Download images built in build job
         uses: actions/download-artifact@v1.0.0
         with:
           name: docker-images
 
-      - name: Print sha256sum of all images
+      - name: Print sha256sum of downloaded images
         run: sha256sum docker-images/*
 
       - name: Load images locally
         run: ls -d docker-images/* | xargs -I %  docker load -i "%"
 
-      # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64-build1`
-      # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64`
-      - name: Version-tag all images
+      - name: Create arch aliases
         run: |
-          for arch in $(docker images ${APP} --format "{{.Tag}}"); do
-            docker tag  "${APP}:${arch}"  "${SLUG}:${VERSION}-${arch}-${BUILD}"
-            docker tag  "${APP}:${arch}"  "${SLUG}:${VERSION}-${arch}"
-          done
-
-      - name: List all tagged images
-        run: docker images "${SLUG}"
+          docker tag  "${APP}:arm"      "${APP}:arm32v7"
+          docker tag  "${APP}:aarch64"  "${APP}:arm64"
 
       - name: Get convenience Docker tag suggestions
         id: tags
         uses: meeDamian/tag-suggestions@v1.0.3
 
+      # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64-build1`
+      # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64`
+      #
+      # `simple-qemu:v4.2.0` -> `meedamian/simple-qemu:v4.2.0-build1`
+      # `simple-qemu:v4.2.0` -> `meedamian/simple-qemu:v4.2.0`
+      - name: Create :X.Y.Z Docker tags
+        run: |
+          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
+            docker tag  "${APP}:${tag}"  "${SLUG}:${VERSION}-${tag}-${BUILD}"
+            docker tag  "${APP}:${tag}"  "${SLUG}:${VERSION}-${tag}"
+          done
+
+          docker tag  "${APP}:${VERSION}"  "${SLUG}:${VERSION}-${BUILD}"
+          docker tag  "${APP}:${VERSION}"  "${SLUG}:${VERSION}"
+
+      # `simple-qemu:arm64`   -> `meedamian/simple-qemu:v4.2-arm64`
+      # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:v4.2`
       - name: Create :X.Y manifest
         if: steps.tags.outputs.minor != ''
         run: |
-          for arch in $(docker images ${APP} --format "{{.Tag}}"); do
-            docker tag  "${APP}:${arch}"  "${SLUG}:${{steps.tags.outputs.minor}}-${arch}"
+          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
+            docker tag  "${APP}:${tag}"  "${SLUG}:${{steps.tags.outputs.minor}}-${tag}"
           done
 
+          docker tag  "${APP}:${VERSION}"  "${SLUG}:${{steps.tags.outputs.minor}}"
+
+      # `simple-qemu:arm64`   -> `meedamian/simple-qemu:v4-arm64`
+      # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:v4`
       - name: Create :X manifest
         if: steps.tags.outputs.major != ''
-        run: ./scripts/ci-create-manifest.sh  "${SLUG}"  "${VERSION}"  "${{steps.tags.outputs.major}}"
+        run: |
+          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
+            docker tag  "${APP}:${tag}"  "${SLUG}:${{steps.tags.outputs.major}}-${tag}"
+          done
 
+          docker tag  "${APP}:${VERSION}"  "${SLUG}:${{steps.tags.outputs.major}}"
+
+      # `simple-qemu:arm64`   -> `meedamian/simple-qemu:arm64`
+      # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:latest`
       - name: Create :latest manifest
         if: steps.tags.outputs.latest != ''
-        run: ./scripts/ci-create-manifest.sh  "${SLUG}"  "${VERSION}"   "${{steps.tags.outputs.latest}}"
+        run: |
+          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
+            docker tag  "${APP}:${tag}"  "${SLUG}:${tag}"
+          done
 
-      - name: List all tagged images
-        run: docker images "${SLUG}"
-
-
-
-
-      - name: Version-tag all images
-        run: >
-          ./scripts/docker-hub-tag.sh \
-            simple-qemu  "${SLUG}"  "${VERSION}"  "${BUILD}" \
-            "enable arm:arm32v7 aarch64:arm64 riscv32 riscv64"
+          docker tag  "${APP}:${VERSION}"  "${SLUG}:latest"
 
       - name: List all tagged images
         run: docker images "${SLUG}"
@@ -258,17 +285,45 @@ jobs:
       - name: Push all images
         run: docker images "${SLUG}" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
+
+  github-release:
+    name: Create Github Release. Only after successful build of a pushed git tag
+    runs-on: ubuntu-18.04
+    needs: test
+
+    steps:
+      - name: Setup environment
+        run: |
+          TAG="$(echo "${GITHUB_REF}" | grep 'refs/tags/' | awk -F/ '{print $NF}')"
+          echo ::set-env name=VERSION::"$(echo "${TAG}" | cut -d+ -f1)"
+
+      - name: Download binaries from build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: binaries
+
+      - name: Download Docker Images from build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: docker-images
+
+      - name: Print checksums of everything
+        run: sha256sum  binaries/*  docker-images/*
+
+      # TODO: change to official way
+      - name: Upload binaries to Github Release
+        uses: meeDamian/github-release@v1.0.1
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          body: "This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${VERSION}"
+          gzip: false
+          files: >
+            docker-images/*
+            binaries/*
+
 # TODO: broken; see: https://github.com/docker/hub-feedback/issues/1927
 #      - name: Sync README.md and Description to Docker Hub
 #        uses: meeDamian/sync-readme@v1.0.5
 #        with:
 #          pass: ${{secrets.DOCKER_TOKEN}}
 #          description: true
-
-      - name: Upload binaries to Github Release
-        uses: meeDamian/github-release@v1.0.0
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          body: This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${VERSION}
-          gzip: false
-          files: binaries/*

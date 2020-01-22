@@ -70,6 +70,7 @@ jobs:
           name: binaries
           path: binaries/
 
+
   test:
     name: Test if running arch-specific images works
     runs-on: ubuntu-18.04
