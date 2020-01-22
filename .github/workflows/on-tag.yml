@@ -155,7 +155,7 @@ jobs:
         run: sha256sum docker-images/*
 
       - name: Load relevant image locally
-        run: docker load -i "docker-images/${APP}-${{matrix.arch}}.tgz"
+        run: docker load -i "./docker-images/${APP}-${{matrix.arch}}.tgz"
 
       - name: Enable emulation
         run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
