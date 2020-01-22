@@ -97,8 +97,8 @@ jobs:
       - name: Save all images to .tgz files
         run: |
           mkdir -p images/
-          for image in $(docker images ${APP} --format "{{.Tag}}"); do
-            docker save "${APP}:{image}" | gzip > "images/${APP}-${image}.tgz"
+          for image in $(docker images "${APP}" --format "{{.Tag}}"); do
+            docker save "${APP}:${image}" | gzip > "images/${APP}-${image}.tgz"
           done
 
       - name: Print sha256sum of all images
