@@ -3,9 +3,9 @@ meedamian/simple-qemu
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/meeDamian/simple-qemu) ![](https://github.com/meeDamian/simple-qemu/workflows/Build%20%26%20deploy%20qemu%20on%20a%20git%20tag%20push/badge.svg)
 
-This project aims to make cross-compilation, and running programs compiled for a different CPU architecture _simple_.
+This project aims to make cross-compilation, and running programs and images built for a different CPU architecture _simple_.
 
-Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), and architectures that can be emulated are:
+Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), while the architectures that can be emulated are:
 
 1. `arm` (AKA `arm32v7`)
 1. `aarch64` (AKA `arm64v8`, `arm64`)
@@ -15,6 +15,8 @@ Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), an
 
 Simple tags
 -----------
+
+For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](https://hub.docker.com/r/meedamian/simple-qemu/tags)
 
 * `v4.2.0`, `v4.2`, `v4`, `latest`
 * `v4.2.0-arm`, `v4.2.0-arm32v7`, `v4.2-arm`, `v4.2-arm32v7`, `v4-arm`, `v4-arm32v7`, `arm`, `arm32v7`
@@ -56,9 +58,9 @@ Simple tags
 
 There are 3 distinct categories of images above:
 
-1. An image that contains binaries for [all architectures].  Tagged with a version alone, ex: `:v4.2.0`, or `:latest`.
+1. An image containing binaries for [all architectures].  Tagged with a version alone, ex: `:v4.2.0`, or `:latest`.
 1. An enable-emulation only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v4.2.0-enable`, or `:enable`.
-1. A single-architecture image.  These images contain only a single architecture and emulation enable script.  Tagged with the name of the architecture, ex: `v4.2.0-arm`, or `aarch64`.
+1. A single-architecture image.  These images contain a single architecture plus an emulation enable script.  Tagged with the name of the architecture, ex: `v4.2.0-arm`, or `aarch64`.
 
 [all architectures]: ./built-architectures.txt
 
@@ -109,6 +111,8 @@ It's that _simple_ :).
 
 Performance
 ------------
+
+> **NOTE:** For an up-to-date comparison of various `qemu` versions see this issue: https://github.com/lncm/docker-bitcoind/issues/9
 
 **Emulation can be nightmarishly slow.**  [Here's] a (not very scientific) comparison.  It uses a [random project] of mine, and compares it again't baseline (no emulation), and another project I know of ([`multiarch/qemu-user-static`]).
 
@@ -164,7 +168,7 @@ Performance
 Bugs and feedback
 ------------------
 
-If you discover a bug please report it [here](https://github.com/meeDamian/simple-qemu/issues/new).  Express gratitude [here](https://donate.meedamian.com).
+If you discover a bug please report it [here](https://github.com/meeDamian/simple-qemu/issues/new).  Express gratitude [here](https://hodl.studio).
 
 Mail me at bugs@meedamian.com, or on twitter [@meeDamian](http://twitter.com/meedamian).
 
