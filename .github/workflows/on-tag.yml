@@ -71,6 +71,10 @@ jobs:
           docker build .
           --target    enable
           --build-arg "VERSION=${VERSION}"
+          --label     commit="${{github.sha}}"
+          --label     git-tag="${TAG}"
+          --label     guilty="${{github.actor}}"
+          --label     repo-url="${{github.repositoryUrl}}"
           --tag       "${APP}:enable"
 
       - name: Package :comprehensive image
@@ -78,6 +82,10 @@ jobs:
           docker build .
           --target    comprehensive
           --build-arg "VERSION=${VERSION}"
+          --label     commit="${{github.sha}}"
+          --label     git-tag="${TAG}"
+          --label     guilty="${{github.actor}}"
+          --label     repo-url="${{github.repositoryUrl}}"
           --tag       "${APP}:${VERSION}"
 
       - name: Package :<single-arch> images
@@ -88,6 +96,10 @@ jobs:
               --target    single \
               --build-arg "VERSION=${VERSION}" \
               --build-arg "ARCH=${arch}" \
+              --label     commit="${{github.sha}}" \
+              --label     git-tag="${TAG}" \
+              --label     guilty="${{github.actor}}" \
+              --label     repo-url="${{github.repositoryUrl}}" \
               --tag       "${APP}:${arch}"
           done
 
