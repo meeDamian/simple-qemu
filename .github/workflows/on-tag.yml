@@ -85,10 +85,10 @@ jobs:
           for arch in $(cat built-architectures.txt); do
             echo "Building ${APP}:${arch}…"
             docker build . \
-              --target    single
+              --target    single \
               --build-arg "VERSION=${VERSION}" \
               --build-arg "ARCH=${arch}" \
-              --tag       "${APP}:${arch}" \
+              --tag       "${APP}:${arch}"
           done
 
       - name: List all built images
