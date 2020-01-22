@@ -1,0 +1,116 @@
+name: Build & "test" qemu
+
+on: push
+
+jobs:
+  build:
+    name: Build recent qemu versions
+    runs-on: ubuntu-18.04
+
+    env:
+      DOCKER_BUILDKIT: 1
+      APP: simple-qemu
+
+    steps:
+      - uses: actions/checkout@v1.0.0
+
+      # NOTE: This is also handled within Dockerfile, we *also* do it here,
+      #         because of the step building single-arch images below.
+      - name: Extract essence from built-architectures.txt
+        run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
+
+      - name: Build base image
+        run: docker build  --no-cache  --target builder  --tag midstate  .
+
+      - name: Package :enable image
+        run: docker build  --target enable  --tag "${APP}:enable"  .
+
+      - name: Package :comprehensive image
+        run: docker build  --target comprehensive  --tag "${APP}:comprehensive"  .
+
+      - name: Package :<single-arch> images
+        run: |
+          for arch in $(cat built-architectures.txt); do
+            echo "Building ${APP}:${arch}…"
+            docker build  --target single  --build-arg "ARCH=${arch}"  --tag "${APP}:${arch}"  .
+          done
+
+      - name: Show built image details
+        run: docker images "${APP}"
+
+      - name: Save all images to .tgz files
+        run: |
+          mkdir -p images/
+          for image in $(docker images "${APP}" --format "{{.Tag}}"); do
+            docker save "${APP}:${image}" | gzip > "images/${APP}-${image}.tgz"
+          done
+
+      - name: Print sha256sum of produced Docker images
+        run: sha256sum images/*
+
+      - name: Add Docker image as build artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: docker-images
+          path: images/
+
+      - name: Extract binaries from the built image
+        run: |
+          ID=$(docker create midstate)
+          docker cp "${ID}:/binaries/"  .
+          docker rm "${ID}"
+          gzip binaries/*
+
+      - name: Print sha256sum of all binaries
+        run: sha256sum binaries/*
+
+      - name: Upload built binaries
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: binaries
+          path: binaries/
+
+  test:
+    name: Test if running arch-specific images works
+    runs-on: ubuntu-18.04
+    needs: build
+
+    strategy:
+      matrix:
+        arch:
+          - arm
+          - aarch64
+#          - riscv32 # Nothing to test it against…
+          - riscv64
+
+    env:
+      APP: simple-qemu
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: docker-images
+
+      - name: Print sha256sum of all Docker images
+        run: sha256sum docker-images/*
+
+      - name: Load relevant image locally
+        run: docker load -i "docker-images/${APP}-${{matrix.arch}}.tgz"
+
+      - name: Enable emulation
+        run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
+
+      - name: Try to run riscv64 image
+        if: matrix.arch == 'riscv64'
+        run: docker run carlosedp/debian:sid-riscv64 uname -a
+
+      - name: Try to run arm32v7 image
+        if: matrix.arch == 'arm'
+        run: docker run arm32v7/alpine uname -a
+
+      - name: Try to run arch-specific image
+        if: matrix.arch != 'riscv64' && matrix.arch != 'arm'
+        run: docker run ${{matrix.arch}}/alpine uname -a

@@ -1,14 +1,18 @@
-FROM debian:10-slim AS builder
+# This Dockerfile builds `qemu` from source, and then offers 3 alternative `--target`s for packaging:
+#   1. `enable`         - contains no `qemu` binaries, only the enable script
+#   2. `single`         - contains a single `qemu` binary (for emulation of a single architecture), and the enable script
+#   3. `comprehensive`  - contains all built `qemu` binaries as well as the enable script
+
+ARG VERSION=v4.2.0
+
+
+FROM debian:buster-slim AS builder
+
+ARG VERSION
 
 # Install deps
 RUN apt-get update && \
-    apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison && \
-    rm -rf /var/lib/apt/lists/*
-
-# Capture `QEMU_VERSION=` passed to `docker build` via `--build-arg`.
-#   If version is not provided, exit - we don't want to build some random binary.
-ARG QEMU_VERSION
-RUN test ! -z "${QEMU_VERSION}"  || (printf "\nQemu version has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 .\n\n" && exit 1)
+    apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
 
 ENV KEYS E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
          CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
@@ -17,30 +21,31 @@ ENV KEYS E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
 
 # Try to fetch key from keyservers listed below.  On first success terminate with `exit 0`.  If loop is not interrupted,
 #   it means all attempts failed, and `exit 1` is called.
-RUN for SRV in keyserver.ubuntu.com  hkp://p80.pool.sks-keyservers.net:80  ha.pool.sks-keyservers.net  keyserver.pgp.com  pgp.mit.edu; do \
-        timeout 9s  gpg  --keyserver "${SRV}"  --recv-keys ${KEYS}  >/dev/null 2<&1 && \
-            { echo "OK:  ${SRV}" && exit 0; } || \
-            { echo "ERR: ${SRV} fail=$?"; } ; \
+RUN for srv in  keyserver.ubuntu.com  hkp://p80.pool.sks-keyservers.net:80  ha.pool.sks-keyservers.net  keyserver.pgp.com  pgp.mit.edu; do \
+        timeout 9s  gpg  --keyserver "${srv}"  --recv-keys ${KEYS}  >/dev/null 2<&1 && \
+            { echo "OK:  ${srv}" && exit 0; } || \
+            { echo "ERR: ${srv} fail=$?"; } ; \
     done && exit 1
 
-RUN gpg --list-keys
+RUN gpg --list-keys && \
+    gpg --list-keys ${KEYS}
 
 # Fetch a minimal source clone of the specified qemu version
 #   Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
 #   For future reference, this is qemu download index: https://download.qemu.org/
-RUN git clone  -b ${QEMU_VERSION}  --depth=1  https://git.qemu.org/git/qemu.git
+RUN git clone  -b "${VERSION}"  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
 WORKDIR /qemu/
 
 # Verify that pulled release has been signed by any of the keys imported above
-RUN git verify-tag ${QEMU_VERSION}
+RUN git verify-tag "${VERSION}"
 
 # Copy the list of all architectures we want to build into the container
 #   Note: put it as far down as possible, so that stuff above doesn't get invalidated when this file changes
 COPY built-architectures.txt /
 
-# Remove all comments, new lines etc from the file.  Only leave the essence.
+# Remove all comments, new lines, etc from the file.  Only leave the essence.
 RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
 
 RUN echo "Target architectures to be built: $(cat /built-architectures.txt | tr '\n' ' ')"
@@ -48,66 +53,73 @@ RUN echo "Target architectures to be built: $(cat /built-architectures.txt | tr 
 # Configure output binaries to rely on no external dependencies (static), and only build for specified architectures
 RUN ./configure  --static  --target-list=$(cat /built-architectures.txt | xargs -I{} echo "{}-linux-user" | tr '\n' ',' | head -c-1)
 
-# make :)
-# NOTE: `-j3` used instead of `-j$(nproc)`, based on better results, see:
-#   https://github.com/meeDamian/docker-bitcoind/commit/40fe90c026399f2d5c2de35535006572e14d24db/checks
-RUN make -j3
+# Do the compiling thing
+RUN make -j$(($(nproc) + 1))
 
-# Copy, rename, and strip all built qemu binaries to root `/`
-RUN mkdir /binaries/ && \
-    for arch in $(cat /built-architectures.txt); do \
+RUN mkdir /binaries/
+
+RUN for arch in $(cat /built-architectures.txt); do \
         cp  "/qemu/${arch}-linux-user/qemu-${arch}"  "/binaries/qemu-${arch}-static"; \
-    done && \
-    du -sh /binaries/* && \
-    strip /binaries/* && \
-    du -sh /binaries/*
+    done
+
+# Print sizes before stripping
+RUN du -sh /binaries/*
+
+RUN strip /binaries/*
+
+# Print sizes after stripping
+RUN du -sh /binaries/*
 
 
 
-## What follows here is 3 different Dockerfile stages used to build 3 different Docker images
+#
+## What follows is 3 Dockerfile stages/targets used to build different final Docker images
 #
 
-## 1. This image has no `qemu` binaries embeded in it.  It can be used to register/enable qemu on the host system,
-#   as well as allows for interactions with qemu provided `qemu-binfmt-conf.sh` script.
-#   See more: https://github.com/qemu/qemu/blob/6894576347a71cdf7a1638650ccf3378cfa2a22d/scripts/qemu-binfmt-conf.sh#L168-L211
+#
+## 1. This image has no `qemu` binaries in it.  It can be used to register/enable qemu on the host system, as well as
+#   allows for interactions with qemu-provided `qemu-binfmt-conf.sh` script
+#   See more: https://github.com/qemu/qemu/blob/v4.2.0/scripts/qemu-binfmt-conf.sh#L172-L215
 FROM busybox:1.31 AS enable
 
-# Copy the `enable.sh` script to the image
-COPY enable.sh /
+LABEL maintainer="Damian Mee (@meeDamian)"
 
-# Copy the qemu-provided `binfmt` script to the image
-COPY --from=builder  /qemu/scripts/qemu-binfmt-conf.sh /
+# Copy-in the `enable.sh` script
+COPY enable.sh /usr/bin/enable-qemu
 
-# Make sure they're both executable
-RUN chmod +x /qemu-binfmt-conf.sh /enable.sh
+# Verify that copied `enable` script is what's expected
+RUN echo "94f44d6db8057ec67d825b5f34114d5574070fcdbcbde10f2ece515c85581504  /usr/bin/enable-qemu" | sha256sum -c -
 
-ENTRYPOINT ["/enable.sh"]
+# Copy-in the qemu-provided `binfmt` script
+COPY  --from=builder /qemu/scripts/qemu-binfmt-conf.sh  /usr/bin/
 
+# Make sure both are executable
+RUN chmod +x  /usr/bin/qemu-binfmt-conf.sh  /usr/bin/enable-qemu
 
-## 2. This image contains all `qemu` binaries that were supported by this repo at the time of tagging.
-#   Note that it builds on top of stage #1, so everything done there is also available here.
-FROM enable AS comprehensive
-
-# Copy, and bundle together all built qemu binaries
-COPY --from=builder  /binaries/qemu-*-static  /usr/bin/
-
-ENTRYPOINT ["/enable.sh"]
+ENTRYPOINT ["enable-qemu"]
 
 
-## 3. This image contains a single-architecture qemu binary, as well as all the necessary setup goodies
-#   Note that it builds on top of stage #1, so everything done there is also available here.
+
+#
+## 2. This image contains a single-architecture `qemu` binary, as well as all scripts necessary for set it up
+#
 FROM enable AS single
 
 # Capture `ARCH` that has to be passed to container via `--build-arg`.
 ARG ARCH
 
 # Make sure that exactly one architecture is provided to ARCH=
-RUN test ! -z "${ARCH}" || (printf "\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg QEMU_VERSION=v4.1.0 --build-arg ARCH=arm-linux-user .\n\n" && exit 1)
+RUN test ! -z "${ARCH}" || (printf '\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg="ARCH=arm-linux-user" … .\n\n' && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
-COPY --from=builder  /binaries/qemu-${ARCH}-static  /usr/bin/
-
-ENTRYPOINT ["/enable.sh"]
+COPY  --from=builder /binaries/qemu-${ARCH}-static  /usr/bin/
 
 
 
+#
+## 3. This image bundles-in all just built `qemu` binaries, and scripts necessary for set it up
+#
+FROM enable AS comprehensive
+
+# Copy, and bundle together all built qemu binaries
+COPY  --from=builder /binaries/qemu-*-static  /usr/bin/

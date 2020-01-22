@@ -11,9 +11,12 @@ SLUG=$2
 # The version-tag currently being added, ex `v4.1.0`.
 TAG=$3
 
+BUILD=$4
+
 # All possible image variants as a space-separated string.  Aliases are accepted in a form of: `name:alias`.
 #   Example string: `"enable arm:arm32v6 aarch64:arm64 riscv64"`
-VARIANTS=$4
+VARIANTS=$5
+
 
 # This function creates requested Docker Tags, or just prints the commands if `DRY_RUN=1` is set.
 tag() {
@@ -40,7 +43,7 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
     tag "${TAG}" "latest"
   fi
 
-  # Cross match each suggested version with a possible variant
+  # Cross-match each suggested version with a possible variant
   for variant in ${VARIANTS}; do
     variant_base=$(echo "${variant}" | cut -d: -f1)
 
@@ -56,9 +59,9 @@ for suggestion in ${TAG} ${SUGGESTED_TAGS}; do
       # For a shortened version, just prepend it to the variant name, ex: `:v4.1-arm`
       tag "${variant_base}" "${suggestion}-${alias}"
 
-      # Create tags that remain even if git-tag gets overriden, ex: `:v4.1.0-arm+6c07e8223e22cb2a6c02a0f98e3784d2b063e9c8`
+      # Create tags that remain even if git-tag gets overriden, ex: `:v4.1.0-arm-build7`
       if [[ "${suggestion}" == "${TAG}" ]]; then
-        tag "${variant_base}" "${suggestion}-${alias}-$(git rev-parse HEAD)"
+        tag "${variant_base}" "${suggestion}-${alias}-${BUILD}"
       fi
     done
   done

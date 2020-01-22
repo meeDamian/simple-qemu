@@ -21,9 +21,9 @@ fi
 if [ "${1}" = "--reset" ]; then
     find /proc/sys/fs/binfmt_misc -type f -name 'qemu-*' -exec sh -c 'echo -1 > {}' \;
 
-    # Remove `--reset` from the list of arguments passed to this script (`$@`)
+    # Removes `--reset` from the list of arguments passed to this script (`$@`)
     shift
 fi
 
 # Register all qemu binaries with a suffix of `-static`, and consume any remaining params passed to the script
-exec /qemu-binfmt-conf.sh --qemu-suffix "-static" --qemu-path /usr/bin/  "$@"
+exec /usr/bin/qemu-binfmt-conf.sh --qemu-suffix "-static" --qemu-path /usr/bin/  "$@"
