@@ -227,11 +227,11 @@ jobs:
       - name: Create :X.Y.Z Docker tags
         run: |
           for tag in $(docker images "$APP" --format "{{.Tag}}" | grep -v "$VERSION"); do
-            docker tag  "$APP:$tag"  "$SLUG:$VERSION-$tag-$BUILD"
+            docker tag  "$APP:$tag"  "$SLUG:$VERSION-$tag-build$BUILD"
             docker tag  "$APP:$tag"  "$SLUG:$VERSION-$tag"
           done
 
-          docker tag  "$APP:$VERSION"  "$SLUG:$VERSION-$BUILD"
+          docker tag  "$APP:$VERSION"  "$SLUG:$VERSION-build$BUILD"
           docker tag  "$APP:$VERSION"  "$SLUG:$VERSION"
 
       # `simple-qemu:arm64`   -> `meedamian/simple-qemu:v4.2-arm64`
@@ -321,5 +321,5 @@ jobs:
 #      - name: Sync README.md and Description to Docker Hub
 #        uses: meeDamian/sync-readme@v1.0.5
 #        with:
-#          pass: ${{secrets.DOCKER_TOKEN}}
+#          pass: ${{ secrets.DOCKER_TOKEN }}
 #          description: true
