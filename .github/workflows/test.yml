@@ -76,7 +76,7 @@ jobs:
 
 
   test:
-    name: Test if running arch-specific images works
+    name: Test arch
     runs-on: ubuntu-18.04
     needs: build
 
