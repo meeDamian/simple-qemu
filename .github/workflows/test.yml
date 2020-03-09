@@ -1,6 +1,10 @@
-name: Build & "test" qemu
+name: Build on push, or PR to master
 
-on: push
+on:
+  push:
+    branches: [ 'master' ]
+  pull_request:
+    branches: [ 'master' ]
 
 jobs:
   build:
