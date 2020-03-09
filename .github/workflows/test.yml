@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-18.04
 
     env:
-      DOCKER_BUILDKIT: 1
       APP: simple-qemu
+      DOCKER_BUILDKIT: 1
 
     steps:
-      - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v2
 
       # NOTE: This is also handled within Dockerfile, we *also* do it here,
       #         because of the step building single-arch images below.
@@ -23,26 +23,26 @@ jobs:
         run: docker build  --no-cache  --target builder  --tag midstate  .
 
       - name: Package :enable image
-        run: docker build  --target enable  --tag "${APP}:enable"  .
+        run: docker build  --target enable  --tag "$APP:enable"  .
 
       - name: Package :comprehensive image
-        run: docker build  --target comprehensive  --tag "${APP}:comprehensive"  .
+        run: docker build  --target comprehensive  --tag "$APP:comprehensive"  .
 
       - name: Package :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
-            echo "Building ${APP}:${arch}…"
-            docker build  --target single  --build-arg "ARCH=${arch}"  --tag "${APP}:${arch}"  .
+            echo "Building $APP:${arch}…"
+            docker build  --target single  --build-arg "ARCH=$arch"  --tag "$APP:$arch"  .
           done
 
       - name: Show built image details
-        run: docker images "${APP}"
+        run: docker images "$APP"
 
       - name: Save all images to .tgz files
         run: |
           mkdir -p images/
-          for image in $(docker images "${APP}" --format "{{.Tag}}"); do
-            docker save "${APP}:${image}" | gzip > "images/${APP}-${image}.tgz"
+          for image in $(docker images "$APP" --format "{{.Tag}}"); do
+            docker save "$APP:$image" | gzip > "images/$APP-$image.tgz"
           done
 
       - name: Print sha256sum of produced Docker images
@@ -56,9 +56,9 @@ jobs:
 
       - name: Extract binaries from the built image
         run: |
-          ID=$(docker create midstate)
-          docker cp "${ID}:/binaries/"  .
-          docker rm "${ID}"
+          ID="$(docker create midstate)"
+          docker cp "$ID:/binaries/"  .
+          docker rm "$ID"
           gzip binaries/*
 
       - name: Print sha256sum of all binaries
@@ -88,8 +88,6 @@ jobs:
       APP: simple-qemu
 
     steps:
-      - uses: actions/checkout@v1
-
       - name: Download all build artifacts
         uses: actions/download-artifact@v1.0.0
         with:
@@ -99,10 +97,10 @@ jobs:
         run: sha256sum docker-images/*
 
       - name: Load relevant image locally
-        run: docker load -i "docker-images/${APP}-${{matrix.arch}}.tgz"
+        run: docker load -i "docker-images/$APP-${{ matrix.arch }}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
+        run: docker run --rm --privileged "$APP:${{ matrix.arch }}" -p yes
 
       - name: Try to run riscv64 image
         if: matrix.arch == 'riscv64'
@@ -114,4 +112,4 @@ jobs:
 
       - name: Try to run arch-specific image
         if: matrix.arch != 'riscv64' && matrix.arch != 'arm'
-        run: docker run ${{matrix.arch}}/alpine uname -a
+        run: docker run ${{ matrix.arch }}/alpine uname -a

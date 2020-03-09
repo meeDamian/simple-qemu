@@ -14,36 +14,23 @@ jobs:
       APP: simple-qemu
 
     steps:
-      - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v2
 
-      ## Set full name of a git-${TAG}
-      #   fmt:  vX.Y.Z[.A][+build<N>]
-      #   NOTE: Fails if TAG is not found
-      - name: Set TAG (env var)
+      # Setup environment
+      # TAG  => vX.Y.Z[.P]+build<BUILD>
+      - name: Setup environment
         run: |
-          TAG="$(echo "${GITHUB_REF}" | grep 'refs/tags/' | awk -F/ '{print $NF}')"
-          if [[ -z "${TAG}" ]]; then
-            echo "This action has to be run on a git-tag push"
+          if ! echo "$GITHUB_REF" | grep -qE '^refs/tags/v(.?[0-9]+){3,4}\+build[0-9]+$'; then
+            echo "ERR: TAG must be in format: vX.Y.Z[.P]+buildNUMBER"
             exit 1
           fi
-          echo ::set-env name=TAG::"${TAG}"
 
-      ## Set ${VERSION} of the binary being built, extract it from the pushed git-tag
-      #   fmt:  vX.Y.Z[.A]
-      - name: Set VERSION (env var)
-        run: echo ::set-env name=VERSION::"$(echo "${TAG}" | cut -d+ -f1)"
+          TAG="$(echo "$GITHUB_REFS" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
+          echo ::set-env name=TAG::"$TAG"
 
-      ## Set ${BUILD} number out of the pushed git-tag
-      #   fmt:  build<N>
-      #   NOTE: Fails if BUILD tag was not set
-      - name: Set BUILD (env var)
-        run: |
-          BUILD="$(echo "+${TAG}" | cut -d+ -f3)"
-          if [[ -z "${BUILD}" ]]; then
-            echo "ERR '+build<N>' must be appended to the git tag"
-            exit 1
-          fi
-          echo ::set-env name=BUILD::"${BUILD}"
+          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
+          echo ::set-env name=BUILD::"$(echo "$TAG" | sed -nE 's|^[^+]+\+build([0-9]+)$|\1|p')"
+
 
       # NOTE: This is also handled within Dockerfile, we *also* do it here,
       #         because of the step building single-arch images below.
@@ -52,65 +39,67 @@ jobs:
 
       - name: Print ENV VARs set above
         run: |
-          printf "Git tag & arch processed:\n"
-          printf "    APP: %s\n"  "${APP}"
-          printf "    TAG: %s\n"  "${TAG}"
-          printf "VERSION: %s\n"  "${VERSION}"
-          printf "  BUILD: %s\n"  "${BUILD}"
+          printf "    APP: %s\n"  "$APP"
+          printf "    TAG: %s\n"  "$TAG"
+          printf "VERSION: %s\n"  "$VERSION"
+          printf "  BUILD: %s\n"  "$BUILD"
           printf "  archs: %s\n"  "$(cat ./built-architectures.txt | tr '\n' ' ')"
 
       - name: Build base image
         run: >
           docker build --no-cache .
           --target    builder
-          --build-arg "VERSION=${VERSION}"
+          --build-arg "VERSION=$VERSION"
           --tag       midstate
 
       - name: Package :enable image
         run: >
           docker build .
           --target    enable
-          --build-arg "VERSION=${VERSION}"
-          --label     commit="${{github.sha}}"
-          --label     git-tag="${TAG}"
-          --label     guilty="${{github.actor}}"
-          --label     repo-url="${{github.repositoryUrl}}"
-          --tag       "${APP}:enable"
+          --build-arg "VERSION=$VERSION"
+          --label     "commit=${{ github.sha }}"
+          --label     "git-tag=$TAG"
+          --label     "build=$BUILD"
+          --label     "guilty=${{ github.actor }}"
+          --label     "repo-url=${{ github.repositoryUrl }}"
+          --tag       "$APP:enable"
 
       - name: Package :comprehensive image
         run: >
           docker build .
           --target    comprehensive
-          --build-arg "VERSION=${VERSION}"
-          --label     commit="${{github.sha}}"
-          --label     git-tag="${TAG}"
-          --label     guilty="${{github.actor}}"
-          --label     repo-url="${{github.repositoryUrl}}"
-          --tag       "${APP}:${VERSION}"
+          --build-arg "VERSION=$VERSION"
+          --label     "commit=${{ github.sha }}"
+          --label     "git-tag=$TAG"
+          --label     "build=$BUILD"
+          --label     "guilty=${{ github.actor }}"
+          --label     "repo-url=${{ github.repositoryUrl }}"
+          --tag       "$APP:$VERSION"
 
       - name: Package :<single-arch> images
         run: |
           for arch in $(cat built-architectures.txt); do
-            echo "Building ${APP}:${arch}…"
+            echo "Building $APP:${arch}…"
             docker build . \
               --target    single \
-              --build-arg "VERSION=${VERSION}" \
-              --build-arg "ARCH=${arch}" \
-              --label     commit="${{github.sha}}" \
-              --label     git-tag="${TAG}" \
-              --label     guilty="${{github.actor}}" \
-              --label     repo-url="${{github.repositoryUrl}}" \
-              --tag       "${APP}:${arch}"
+              --build-arg "VERSION=$VERSION" \
+              --build-arg "ARCH=$arch" \
+              --label     "commit=${{ github.sha }}" \
+              --label     "git-tag=$TAG" \
+              --label     "build=$BUILD" \
+              --label     "guilty=${{ github.actor }}" \
+              --label     "repo-url=${{ github.repositoryUrl }}" \
+              --tag       "$APP:$arch"
           done
 
       - name: List all built images
-        run: docker images "${APP}"
+        run: docker images "$APP"
 
       - name: Save all images to .tgz files
         run: |
           mkdir -p images/
-          for image in $(docker images "${APP}" --format "{{.Tag}}"); do
-            docker save "${APP}:${image}" | gzip > "images/${APP}-${image}.tgz"
+          for image in $(docker images "$APP" --format "{{.Tag}}"); do
+            docker save "$APP:$image" | gzip > "images/$APP-$image.tgz"
           done
 
       - name: Print sha256sum of all images
@@ -124,10 +113,10 @@ jobs:
 
       - name: Extract qemu binaries from built image
         run: |
-          ID=$(docker create midstate)
-          docker cp  "${ID}:/binaries/"  .
-          docker rm "${ID}"
-          gzip -S "-${VERSION}.gz" binaries/*
+          ID="$(docker create midstate)"
+          docker cp  "$ID:/binaries/"  .
+          docker rm "$ID"
+          gzip -S "-$VERSION.gz" binaries/*
 
       - name: Print sha256sum of all binaries
         run: sha256sum binaries/*
@@ -156,8 +145,6 @@ jobs:
       APP: simple-qemu
 
     steps:
-      - uses: actions/checkout@v1
-
       - name: Download all build artifacts
         uses: actions/download-artifact@v1.0.0
         with:
@@ -167,10 +154,10 @@ jobs:
         run: sha256sum docker-images/*
 
       - name: Load relevant image locally
-        run: docker load -i "docker-images/${APP}-${{matrix.arch}}.tgz"
+        run: docker load -i "docker-images/$APP-${{ matrix.arch }}.tgz"
 
       - name: Enable emulation
-        run: docker run --rm --privileged "${APP}:${{matrix.arch}}" -p yes
+        run: docker run --rm --privileged "$APP:${{ matrix.arch }}" -p yes
 
       - name: Try to run riscv64 image
         if: matrix.arch == 'riscv64'
@@ -182,7 +169,7 @@ jobs:
 
       - name: Try to run arch-specific image
         if: matrix.arch != 'riscv64' && matrix.arch != 'arm'
-        run: docker run ${{matrix.arch}}/alpine uname -a
+        run: docker run ${{ matrix.arch }}/alpine uname -a
 
 
   docker-hub-push:
@@ -191,32 +178,25 @@ jobs:
     runs-on: ubuntu-18.04
     needs: test
     steps:
-      - uses: actions/checkout@v1.0.0
-
       - name: Setup environment
         run: |
-          echo ::set-env name=DOCKER_USER::"${GITHUB_ACTOR,,}"
+          SLUG="$(echo ${GITHUB_REPOSITORY,,} | sed 's/docker-//')"
+          echo ::set-env name=SLUG::"$SLUG"
+          echo ::set-env name=APP::"$(echo "$SLUG" | awk -F/ '{print $NF}')"
 
-          SLUG="$(echo "${GITHUB_REPOSITORY,,}" | sed 's/docker-//')"
-          echo ::set-env name=SLUG::"${SLUG}"
+          TAG="$(echo "$GITHUB_REFS" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
+          echo ::set-env name=TAG::"$TAG"
 
-          echo ::set-env name=APP::"$(echo "${SLUG}" | awk -F/ '{print $NF}')"
-
-          TAG="$(echo "${GITHUB_REF}" | grep 'refs/tags/' | awk -F/ '{print $NF}')"
-          echo ::set-env name=TAG::"${TAG}"
-
-          echo ::set-env name=VERSION::"$(echo "${TAG}" | cut -d+ -f1)"
-          echo ::set-env name=BUILD::"$(echo "+${TAG}" | cut -d+ -f3)"
+          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
+          echo ::set-env name=BUILD::"$(echo "$TAG" | sed -nE 's|^[^+]+\+build([0-9]+)$|\1|p')"
 
       - name: Print just set ENV VARs
         run: |
-          printf "Just set env vars:\n"
-          printf "   USER: %s\n"  "${DOCKER_USER}"
-          printf "    TAG: %s\n"  "${TAG}"
-          printf "   SLUG: %s\n"  "${SLUG}"
-          printf "    APP: %s\n"  "${APP}"
-          printf "VERSION: %s\n"  "${VERSION}"
-          printf "  BUILD: %s\n"  "${BUILD}"
+          printf "    APP: %s\n"  "$APP"
+          printf "    TAG: %s\n"  "$TAG"
+          printf "   SLUG: %s\n"  "$SLUG"
+          printf "VERSION: %s\n"  "$VERSION"
+          printf "  BUILD: %s\n"  "$BUILD"
 
       - name: Download images built in build job
         uses: actions/download-artifact@v1.0.0
@@ -231,8 +211,9 @@ jobs:
 
       - name: Create arch aliases
         run: |
-          docker tag  "${APP}:arm"      "${APP}:arm32v7"
-          docker tag  "${APP}:aarch64"  "${APP}:arm64"
+          docker tag  "$APP:arm"      "$APP:arm32v7"
+          docker tag  "$APP:aarch64"  "$APP:arm64v8"
+          docker tag  "$APP:aarch64"  "$APP:arm64"
 
       - name: Get convenience Docker tag suggestions
         id: tags
@@ -245,57 +226,59 @@ jobs:
       # `simple-qemu:v4.2.0` -> `meedamian/simple-qemu:v4.2.0`
       - name: Create :X.Y.Z Docker tags
         run: |
-          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
-            docker tag  "${APP}:${tag}"  "${SLUG}:${VERSION}-${tag}-${BUILD}"
-            docker tag  "${APP}:${tag}"  "${SLUG}:${VERSION}-${tag}"
+          for tag in $(docker images "$APP" --format "{{.Tag}}" | grep -v "$VERSION"); do
+            docker tag  "$APP:$tag"  "$SLUG:$VERSION-$tag-$BUILD"
+            docker tag  "$APP:$tag"  "$SLUG:$VERSION-$tag"
           done
 
-          docker tag  "${APP}:${VERSION}"  "${SLUG}:${VERSION}-${BUILD}"
-          docker tag  "${APP}:${VERSION}"  "${SLUG}:${VERSION}"
+          docker tag  "$APP:$VERSION"  "$SLUG:$VERSION-$BUILD"
+          docker tag  "$APP:$VERSION"  "$SLUG:$VERSION"
 
       # `simple-qemu:arm64`   -> `meedamian/simple-qemu:v4.2-arm64`
       # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:v4.2`
       - name: Create :X.Y manifest
         if: steps.tags.outputs.minor != ''
         run: |
-          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
-            docker tag  "${APP}:${tag}"  "${SLUG}:${{steps.tags.outputs.minor}}-${tag}"
+          for tag in $(docker images "$APP" --format "{{.Tag}}" | grep -v "$VERSION"); do
+            docker tag  "$APP:$tag"  "$SLUG:${{ steps.tags.outputs.minor }}-$tag"
           done
 
-          docker tag  "${APP}:${VERSION}"  "${SLUG}:${{steps.tags.outputs.minor}}"
+          docker tag  "$APP:$VERSION"  "$SLUG:${{ steps.tags.outputs.minor }}"
 
       # `simple-qemu:arm64`   -> `meedamian/simple-qemu:v4-arm64`
       # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:v4`
       - name: Create :X manifest
         if: steps.tags.outputs.major != ''
         run: |
-          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
-            docker tag  "${APP}:${tag}"  "${SLUG}:${{steps.tags.outputs.major}}-${tag}"
+          for tag in $(docker images "$APP" --format "{{.Tag}}" | grep -v "$VERSION"); do
+            docker tag  "$APP:$tag"  "$SLUG:${{ steps.tags.outputs.major }}-$tag"
           done
 
-          docker tag  "${APP}:${VERSION}"  "${SLUG}:${{steps.tags.outputs.major}}"
+          docker tag  "$APP:$VERSION"  "$SLUG:${{ steps.tags.outputs.major }}"
 
       # `simple-qemu:arm64`   -> `meedamian/simple-qemu:arm64`
       # `simple-qemu:v4.2.0`  -> `meedamian/simple-qemu:latest`
       - name: Create :latest manifest
         if: steps.tags.outputs.latest != ''
         run: |
-          for tag in $(docker images "${APP}" --format "{{.Tag}}" | grep -v "${VERSION}"); do
-            docker tag  "${APP}:${tag}"  "${SLUG}:${tag}"
+          for tag in $(docker images "$APP" --format "{{.Tag}}" | grep -v "$VERSION"); do
+            docker tag  "$APP:$tag"  "$SLUG:$tag"
           done
 
-          docker tag  "${APP}:${VERSION}"  "${SLUG}:latest"
+          docker tag  "$APP:$VERSION"  "$SLUG:latest"
 
       - name: List all tagged images
-        run: docker images "${SLUG}"
+        run: docker images "$SLUG"
 
       - name: Login to Docker Hub
+        env:
+          DOCKER_USER: meedamian
         run: |
           echo "Logging in as ${DOCKER_USER}…"
-          echo "${{secrets.DOCKER_TOKEN}}" | docker login -u="${DOCKER_USER}" --password-stdin
+          echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u="$DOCKER_USER" --password-stdin
 
       - name: Push all images
-        run: docker images "${SLUG}" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+        run: docker images "$SLUG" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
 
   github-release:
@@ -306,8 +289,8 @@ jobs:
     steps:
       - name: Setup environment
         run: |
-          TAG="$(echo "${GITHUB_REF}" | grep 'refs/tags/' | awk -F/ '{print $NF}')"
-          echo ::set-env name=VERSION::"$(echo "${TAG}" | cut -d+ -f1)"
+          TAG="$(echo "$GITHUB_REFS" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
+          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
 
       - name: Download binaries from build artifacts
         uses: actions/download-artifact@v1.0.0
@@ -326,8 +309,9 @@ jobs:
       - name: Upload binaries to Github Release
         uses: meeDamian/github-release@v1.0.1
         with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          body: "This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${VERSION}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ env.VERSION }}
+          body: "This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${{ env.VERSION }}"
           gzip: false
           files: >
             docker-images/*

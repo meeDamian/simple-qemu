@@ -22,24 +22,25 @@ ENV KEYS E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
 # Try to fetch key from keyservers listed below.  On first success terminate with `exit 0`.  If loop is not interrupted,
 #   it means all attempts failed, and `exit 1` is called.
 RUN for srv in  keyserver.ubuntu.com  hkp://p80.pool.sks-keyservers.net:80  ha.pool.sks-keyservers.net  keyserver.pgp.com  pgp.mit.edu; do \
-        timeout 9s  gpg  --keyserver "${srv}"  --recv-keys ${KEYS}  >/dev/null 2<&1 && \
-            { echo "OK:  ${srv}" && exit 0; } || \
-            { echo "ERR: ${srv} fail=$?"; } ; \
+        timeout 9s  gpg  --keyserver "$srv"  --recv-keys $KEYS  >/dev/null 2<&1 && \
+            { echo "OK:  $srv" && exit 0; } || \
+            { echo "ERR: $srv fail=$?"; } ; \
     done && exit 1
 
-RUN gpg --list-keys && \
-    gpg --list-keys ${KEYS}
+# Print imported keys, but also ensure there's no other keys in the system
+RUN gpg --list-keys | tail -n +3 | tee /tmp/keys.txt && \
+    gpg --list-keys $KEYS | diff - /tmp/keys.txt
 
 # Fetch a minimal source clone of the specified qemu version
 #   Note: using the official repo for source pull, but mirror is available on github too: github.com/qemu/qemu
 #   For future reference, this is qemu download index: https://download.qemu.org/
-RUN git clone  -b "${VERSION}"  --depth=1  https://git.qemu.org/git/qemu.git
+RUN git clone  -b "$VERSION"  --depth=1  https://git.qemu.org/git/qemu.git
 
 # All building happens in this directory
 WORKDIR /qemu/
 
 # Verify that pulled release has been signed by any of the keys imported above
-RUN git verify-tag "${VERSION}"
+RUN git verify-tag "$VERSION"
 
 # Copy the list of all architectures we want to build into the container
 #   Note: put it as far down as possible, so that stuff above doesn't get invalidated when this file changes
@@ -59,7 +60,7 @@ RUN make -j$(($(nproc) + 1))
 RUN mkdir /binaries/
 
 RUN for arch in $(cat /built-architectures.txt); do \
-        cp  "/qemu/${arch}-linux-user/qemu-${arch}"  "/binaries/qemu-${arch}-static"; \
+        cp  "/qemu/$arch-linux-user/qemu-$arch"  "/binaries/qemu-$arch-static"; \
     done
 
 # Print sizes before stripping
@@ -109,10 +110,10 @@ FROM enable AS single
 ARG ARCH
 
 # Make sure that exactly one architecture is provided to ARCH=
-RUN test ! -z "${ARCH}" || (printf '\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg="ARCH=arm-linux-user" … .\n\n' && exit 1)
+RUN test ! -z "$ARCH" || (printf '\nSingle target architecture (ARCH) has to be provided\n\tex: docker build --build-arg="ARCH=arm-linux-user" … .\n\n' && exit 1)
 
 # Copy the qemu binary for the selected architecture to the
-COPY  --from=builder /binaries/qemu-${ARCH}-static  /usr/bin/
+COPY  --from=builder /binaries/qemu-$ARCH-static  /usr/bin/
 
 
 
