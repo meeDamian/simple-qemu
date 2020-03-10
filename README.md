@@ -1,7 +1,7 @@
 meedamian/simple-qemu
 =====================
 
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/meeDamian/simple-qemu) ![](https://github.com/meeDamian/simple-qemu/workflows/Build%20%26%20deploy%20qemu%20on%20a%20git%20tag%20push/badge.svg)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/meeDamian/simple-qemu) ![](https://github.com/meeDamian/simple-qemu/workflows/Build%20%26%20deploy%20on%20git%20tag%20push/badge.svg)
 
 This project aims to make cross-compilation, and running programs and images built for a different CPU architecture _simple_.
 
