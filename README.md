@@ -18,6 +18,7 @@ Simple tags
 
 For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](https://hub.docker.com/r/meedamian/simple-qemu/tags)
 
+### v4.2.0
 * `v4.2.0`, `v4.2`, `v4`, `latest`
 * `v4.2.0-arm`, `v4.2-arm`, `v4-arm`, `arm` (or: `arm32v7`)
 * `v4.2.0-aarch64`, `v4.2-aarch64`, `v4-aarch64`, `aarch64` (or: `arm64v8` & `arm64`)
@@ -25,7 +26,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.2.0-riscv64`, `v4.2-riscv64`, `v4-riscv64`, `riscv64`
 * `v4.2.0-enable`, `v4.2-enable`, `v4-enable`, `enable`
 
-
+### v4.1.1
 * `v4.1.1`, `v4.1`
 * `v4.1.1-arm`, `v4.1-arm` (or: `-arm32v7`)
 * `v4.1.1-aarch64`, `v4.1-aarch64`  (or: `-arm64v8` & `-arm64`)
@@ -33,7 +34,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.1.1-riscv64`, `v4.1-riscv64`
 * `v4.1.1-enable`, `v4.1-enable`
 
-
+### v4.1.0
 * `v4.1.0`
 * `v4.1.0-arm` (or: `-arm32v7`)
 * `v4.1.0-aarch64` (or: `-arm64v8` & `-arm64`)
@@ -41,7 +42,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.1.0-riscv64`
 * `v4.1.0-enable`
 
-
+### v4.0.1
 * `v4.0.1`, `v4.0`
 * `v4.0.1-arm`, `v4.0-arm` (or: `-arm32v7`)
 * `v4.0.1-aarch64`, `v4.0-aarch64` (or: `-arm64v8` & `-arm64`)
@@ -49,7 +50,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.0.1-riscv64`, `v4.0-riscv64`
 * `v4.0.1-enable`, `v4.0-enable`
 
-
+### v4.0.0
 * `v4.0.0`
 * `v4.0.0-arm` (or: `-arm32v7`)
 * `v4.0.0-aarch64` (or: `-arm64v8` & `-arm64`)
@@ -57,7 +58,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.0.0-riscv64`
 * `v4.0.0-enable`
 
-
+### v3.1.1
 * `v3.1.1`, `v3.1`, `v3`
 * `v3.1.1-arm`, `v3.1-arm`, `v3-arm` (or: `-arm32v7`)
 * `v3.1.1-aarch64`, `v3.1-aarch64`, `v3-aarch64` (or: `-arm64v8` & `-arm64`)
@@ -65,7 +66,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v3.1.1-riscv64`, `v3.1-riscv64`, `v3-riscv64`
 * `v3.1.1-enable`, `v3.1-enable`, `v3-enable`
 
-
+### v3.1.0
 * `v3.1.0`
 * `v3.1.0-arm` (or: `-arm32v7`)
 * `v3.1.0-aarch64` (or: `-arm64v8` & `-arm64`)
