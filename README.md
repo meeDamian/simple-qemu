@@ -33,8 +33,8 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.1.0-enable`, `v4.1-enable`
 
 * `v4.0.0`, `v4.0`
-* `v4.0.0-arm`, `v4.0.0-arm32v7`, `v4.0-arm`, `v4.0-arm32v7`
-* `v4.0.0-aarch64`, `v4.0.0-arm64`, `v4.0-aarch64`, `v4.0-arm64`
+* `v4.0.0-arm`, `v4.0-arm` (or: `-arm32v7`)
+* `v4.0.0-aarch64`, `v4.0-aarch64` (or: `-arm64v8` & `-arm64`)
 * `v4.0.0-riscv32`, `v4.0-riscv32`
 * `v4.0.0-riscv64`, `v4.0-riscv64`
 * `v4.0.0-enable`, `v4.0-enable`
