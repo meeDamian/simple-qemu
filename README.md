@@ -13,6 +13,18 @@ Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), wh
 1. `riscv64`
 
 
+### Image categories
+
+There are 3 distinct categories of images below:
+
+1. An image containing binaries for [all architectures].  Tagged with a version alone, ex: `:v4.2.0`, or `:latest`.
+1. An enable-emulation-only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v4.2.0-enable`, or `:enable`.
+1. A single-architecture image.  These images contain a single architecture plus a script to enable emulation.  Tagged with the name of the architecture, ex: `v4.2.0-arm`, or `aarch64`.
+
+[all architectures]: ./built-architectures.txt
+
+
+
 Simple tags
 -----------
 
@@ -73,17 +85,6 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v3.1.0-riscv32`
 * `v3.1.0-riscv64`
 * `v3.1.0-enable`
-
-
-### Image categories
-
-There are 3 distinct categories of images above:
-
-1. An image containing binaries for [all architectures].  Tagged with a version alone, ex: `:v4.2.0`, or `:latest`.
-1. An enable-emulation only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v4.2.0-enable`, or `:enable`.
-1. A single-architecture image.  These images contain a single architecture plus an emulation enable script.  Tagged with the name of the architecture, ex: `v4.2.0-arm`, or `aarch64`.
-
-[all architectures]: ./built-architectures.txt
 
 
 Usage
