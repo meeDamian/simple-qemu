@@ -48,7 +48,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 
 * `v3.1.0`
 * `v3.1.0-arm`, `v3.1.0-arm32v7`
-* `v3.1.0-aarch64`, `v3.1.0-arm64`
+* `v3.1.0-aarch64`, `v3.1.0-arm64v8`, `v3.1.0-arm64`
 * `v3.1.0-riscv32`
 * `v3.1.0-riscv64`
 * `v3.1.0-enable`
