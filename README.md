@@ -40,15 +40,15 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 * `v4.0.0-enable`, `v4.0-enable`
 
 * `v3.1.1`, `v3.1`, `v3`
-* `v3.1.1-arm`, `v3.1.1-arm32v7`, `v3.1-arm`, `v3.1-arm32v7`, `v3-arm`, `v3-arm32v7`
-* `v3.1.1-aarch64`, `v3.1.1-arm64`, `v3.1-aarch64`, `v3.1-arm64`, `v3-aarch64`, `v3-arm64`
+* `v3.1.1-arm`, `v3.1-arm`, `v3-arm` (or: `-arm32v7`)
+* `v3.1.1-aarch64`, `v3.1-aarch64`, `v3-aarch64` (or: `-arm64v8` & `-arm64`)
 * `v3.1.1-riscv32`, `v3.1-riscv32`, `v3-riscv32`
 * `v3.1.1-riscv64`, `v3.1-riscv64`, `v3-riscv64`
 * `v3.1.1-enable`, `v3.1-enable`, `v3-enable`
 
 * `v3.1.0`
-* `v3.1.0-arm`, `v3.1.0-arm32v7`
-* `v3.1.0-aarch64`, `v3.1.0-arm64v8`, `v3.1.0-arm64`
+* `v3.1.0-arm` (or: `-arm32v7`)
+* `v3.1.0-aarch64` (or: `-arm64v8` & `-arm64`)
 * `v3.1.0-riscv32`
 * `v3.1.0-riscv64`
 * `v3.1.0-enable`
