@@ -19,8 +19,8 @@ Simple tags
 For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](https://hub.docker.com/r/meedamian/simple-qemu/tags)
 
 * `v4.2.0`, `v4.2`, `v4`, `latest`
-* `v4.2.0-arm`, `v4.2.0-arm32v7`, `v4.2-arm`, `v4.2-arm32v7`, `v4-arm`, `v4-arm32v7`, `arm`, `arm32v7`
-* `v4.2.0-aarch64`, `v4.2.0-arm64`, `v4.2-aarch64`, `v4.2-arm64`, `v4-aarch64`, `v4-arm64`, `aarch64`, `arm64`
+* `v4.2.0-arm`, `v4.2-arm`, `v4-arm`, `arm` (or: `arm32v7`)
+* `v4.2.0-aarch64`, `v4.2-aarch64`, `v4-aarch64`, `aarch64` (or: `arm64v8` & `arm64`)
 * `v4.2.0-riscv32`, `v4.2-riscv32`, `v4-riscv32`, `riscv32`
 * `v4.2.0-riscv64`, `v4.2-riscv64`, `v4-riscv64`, `riscv64`
 * `v4.2.0-enable`, `v4.2-enable`, `v4-enable`, `enable`
@@ -36,7 +36,7 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 
 * `v4.1.0`
 * `v4.1.0-arm` (or: `-arm32v7`)
-* `v4.1.0-aarch64`  (or: `-arm64v8` & `-arm64`)
+* `v4.1.0-aarch64` (or: `-arm64v8` & `-arm64`)
 * `v4.1.0-riscv32`
 * `v4.1.0-riscv64`
 * `v4.1.0-enable`
