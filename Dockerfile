@@ -3,7 +3,7 @@
 #   2. `single`         - contains a single `qemu` binary (for emulation of a single architecture), and the enable script
 #   3. `comprehensive`  - contains all built `qemu` binaries as well as the enable script
 
-ARG VERSION=v4.2.0
+ARG VERSION=v5.0.0-rc3
 
 
 FROM debian:buster-slim AS builder
