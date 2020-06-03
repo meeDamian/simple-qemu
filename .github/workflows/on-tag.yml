@@ -305,9 +305,8 @@ jobs:
       - name: Print checksums of everything
         run: sha256sum  binaries/*  docker-images/*
 
-      # TODO: change to official way
       - name: Upload binaries to Github Release
-        uses: meeDamian/github-release@v1.0.1
+        uses: meeDamian/github-release@v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ env.VERSION }}
