@@ -112,22 +112,6 @@ jobs:
           name: docker-images
           path: images/
 
-      - name: Extract qemu binaries from built image
-        run: |
-          ID="$(docker create midstate)"
-          docker cp  "$ID:/binaries/"  .
-          docker rm "$ID"
-          gzip -S "-$VERSION.gz" binaries/*
-
-      - name: Print sha256sum of all binaries
-        run: sha256sum binaries/*
-
-      - name: Upload built binaries
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: binaries
-          path: binaries/
-
 
   test:
     name: Test if running arch-specific images works
@@ -276,6 +260,16 @@ jobs:
 
       - name: Push all images
         run: docker images "$SLUG" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+
+      - name: Extract binaries from image
+        run: |
+          ID="$(docker create "$APP:$VERSION")"
+          docker cp "$ID:/usr/local/bin/" ./binaries/
+          docker rm "$ID"
+
+          cd binaries/
+          gzip -S "-$VERSION.gz" qemu-*-static
+          find . ! -name '*.gz' -delete
 
       - name: Create & print SHA256SUMS file
         run: |
