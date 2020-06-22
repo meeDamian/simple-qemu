@@ -1,5 +1,8 @@
 name: Build on push, or PR to master
 
+env:
+  APP: simple-qemu
+
 on:
   push:
     branches: [ 'master' ]
@@ -12,7 +15,6 @@ jobs:
     runs-on: ubuntu-18.04
 
     env:
-      APP: simple-qemu
       DOCKER_BUILDKIT: 1
 
     steps:
@@ -24,7 +26,7 @@ jobs:
         run: sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  ./built-architectures.txt
 
       - name: Build base image
-        run: docker build  --no-cache  --target builder  --tag midstate  .
+        run: docker build  --target builder  --tag midstate  --no-cache  .
 
       - name: Package :enable image
         run: docker build  --target enable  --tag "$APP:enable"  .
@@ -36,7 +38,7 @@ jobs:
         run: |
           for arch in $(cat built-architectures.txt); do
             echo "Building $APP:${arch}…"
-            docker build  --target single  --build-arg "ARCH=$arch"  --tag "$APP:$arch"  .
+            docker build  --target single  --tag "$APP:$arch"  --build-arg "ARCH=$arch"  .
           done
 
       - name: Show built image details
@@ -52,27 +54,11 @@ jobs:
       - name: Print sha256sum of produced Docker images
         run: sha256sum images/*
 
-      - name: Add Docker image as build artifact
+      - name: Add Docker images as build artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: docker-images
           path: images/
-
-      - name: Extract binaries from the built image
-        run: |
-          ID="$(docker create midstate)"
-          docker cp "$ID:/binaries/"  .
-          docker rm "$ID"
-          gzip binaries/*
-
-      - name: Print sha256sum of all binaries
-        run: sha256sum binaries/*
-
-      - name: Upload built binaries
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: binaries
-          path: binaries/
 
 
   test:
@@ -85,11 +71,8 @@ jobs:
         arch:
           - arm
           - aarch64
-#          - riscv32 # Nothing to test it against…
           - riscv64
-
-    env:
-      APP: simple-qemu
+#          - riscv32 # Nothing to test it against…
 
     steps:
       - name: Download all build artifacts
@@ -106,14 +89,14 @@ jobs:
       - name: Enable emulation
         run: docker run --rm --privileged "$APP:${{ matrix.arch }}" -p yes
 
-      - name: Try to run riscv64 image
+      - name: Test riscv64 image
         if: matrix.arch == 'riscv64'
         run: docker run carlosedp/debian:sid-riscv64 uname -a
 
-      - name: Try to run arm32v7 image
+      - name: Test arm32v7 image
         if: matrix.arch == 'arm'
         run: docker run arm32v7/alpine uname -a
 
-      - name: Try to run arch-specific image
+      - name: Test arch-specific image
         if: matrix.arch != 'riscv64' && matrix.arch != 'arm'
         run: docker run ${{ matrix.arch }}/alpine uname -a

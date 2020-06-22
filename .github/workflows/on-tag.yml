@@ -1,5 +1,8 @@
 name: Build & deploy on git tag push
 
+env:
+  APP: simple-qemu
+
 on:
   push:
     tags: [ '*' ]
@@ -11,7 +14,6 @@ jobs:
 
     env:
       DOCKER_BUILDKIT: 1
-      APP: simple-qemu
 
     steps:
       - uses: actions/checkout@v2
@@ -20,17 +22,16 @@ jobs:
       # TAG  => vX.Y.Z[.P]+build<BUILD>
       - name: Setup environment
         run: |
-          if ! echo "$GITHUB_REF" | grep -qE '^refs/tags/v(.?[0-9]+){3,4}\+build[0-9]+$'; then
-            echo "ERR: TAG must be in format: vX.Y.Z[.P]+buildNUMBER"
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          if ! echo "$TAG" | grep -qE '^v(.?[0-9]+){3,4}\+build[0-9]+$'; then
+            >&2 echo "ERR: TAG must be in format: vX.Y.Z[.P]+buildNUMBER"
             exit 1
           fi
 
-          TAG="$(echo "$GITHUB_REF" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
           echo ::set-env name=TAG::"$TAG"
-
-          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
-          echo ::set-env name=BUILD::"$(echo "$TAG" | sed -nE 's|^[^+]+\+build([0-9]+)$|\1|p')"
-
+          echo ::set-env name=VERSION::"${TAG%+*}"
+          echo ::set-env name=BUILD::"${TAG#*build}"
 
       # NOTE: This is also handled within Dockerfile, we *also* do it here,
       #         because of the step building single-arch images below.
@@ -138,11 +139,8 @@ jobs:
         arch:
           - arm
           - aarch64
-#          - riscv32 # Nothing to test it against…
           - riscv64
-
-    env:
-      APP: simple-qemu
+#          - riscv32 # Nothing to test it against…
 
     steps:
       - name: Download all build artifacts
@@ -172,23 +170,20 @@ jobs:
         run: docker run ${{ matrix.arch }}/alpine uname -a
 
 
-  docker-hub-push:
-    name: Tag & deploy to Docker Hub.  Only after successful build, and test of a pushed git tag
+  deploy:
+    name: Deploy to Docker Hub & Github Releases.  Only after successful build and test.
 
     runs-on: ubuntu-18.04
     needs: test
     steps:
       - name: Setup environment
         run: |
-          SLUG="$(echo ${GITHUB_REPOSITORY,,} | sed 's/docker-//')"
-          echo ::set-env name=SLUG::"$SLUG"
-          echo ::set-env name=APP::"$(echo "$SLUG" | awk -F/ '{print $NF}')"
+          echo ::set-env name=SLUG::"${GITHUB_REPOSITORY,,}"
 
-          TAG="$(echo "$GITHUB_REF" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
+          TAG="${GITHUB_REF#refs/tags/}"
           echo ::set-env name=TAG::"$TAG"
-
-          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
-          echo ::set-env name=BUILD::"$(echo "$TAG" | sed -nE 's|^[^+]+\+build([0-9]+)$|\1|p')"
+          echo ::set-env name=VERSION::"${TAG%+*}"
+          echo ::set-env name=BUILD::"${TAG#*build}"
 
       - name: Print just set ENV VARs
         run: |
@@ -280,41 +275,25 @@ jobs:
       - name: Push all images
         run: docker images "$SLUG" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
-
-  github-release:
-    name: Create Github Release. Only after successful build of a pushed git tag
-    runs-on: ubuntu-18.04
-    needs: test
-
-    steps:
-      - name: Setup environment
+      - name: Create & print SHA256SUMS file
         run: |
-          TAG="$(echo "$GITHUB_REF" | sed -nE 's|^refs/tags/(.*)$|\1|p')"
-          echo ::set-env name=VERSION::"$(echo "$TAG" | sed -nE 's|^([^+]+).*$|\1|p')"
-
-      - name: Download binaries from build artifacts
-        uses: actions/download-artifact@v1.0.0
-        with:
-          name: binaries
-
-      - name: Download Docker Images from build artifacts
-        uses: actions/download-artifact@v1.0.0
-        with:
-          name: docker-images
-
-      - name: Print checksums of everything
-        run: sha256sum  binaries/*  docker-images/*
+          (cd docker-images;  sha256sum *) >> ./SHA256SUMS
+          (cd binaries;       sha256sum *) >> ./SHA256SUMS
+          cat ./SHA256SUMS
 
       - name: Upload binaries to Github Release
-        uses: meeDamian/github-release@v2.0.1
+        uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ env.VERSION }}
-          body: "This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${{ env.VERSION }}"
+          body: |
+            This release takes `qemu` binaries to be on par with https://github.com/qemu/qemu/releases/tag/${{ env.VERSION }}
           gzip: false
           files: >
             docker-images/*
             binaries/*
+            SHA256SUMS
+
 
 # TODO: broken; see: https://github.com/docker/hub-feedback/issues/1927
 #      - name: Sync README.md and Description to Docker Hub

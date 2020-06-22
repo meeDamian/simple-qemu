@@ -5,7 +5,7 @@ meedamian/simple-qemu
 
 This project aims to make cross-compilation, and running programs and images built for a different CPU architecture _simple_.
 
-Currently the only **host** architecture supported is `amd64` (AKA `x86_64`), while the architectures that can be emulated are:
+Currently, the only **host** architecture supported is `amd64` (AKA `x86_64`), while the architectures that can be emulated are:
 
 1. `arm` (AKA `arm32v7`)
 1. `aarch64` (AKA `arm64v8`, `arm64`)
@@ -98,32 +98,36 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 Usage
 =====
 
-The simplest way to run an image built for a different architecture is to run:
+First, enabling emulation needs to be coordinated with host's kernel:
 
 ```shell script
-# Enable emulation on the host system
 docker run --rm --privileged meedamian/simple-qemu -p yes
- 
-# Verify it worked
+```
+
+Once that's done, two things become possible:
+
+
+#### Running
+
+To run image built for a different CPU architecture:
+
+```shell script
 docker run --rm arm32v7/alpine uname -m
 ```
 
-If you want to emulate build on your amd64 machine, then:
 
-```shell script
-# Enable emulation on the host system
-docker run --rm --privileged meedamian/simple-qemu -p yes
-```
+#### Extending
 
-And then in your `Dockerfile` specify exact base architecture, you want to use:
+To build _`FROM`_ different CPU archiecture image:
 
-```Dockerfile
-FROM arm32v7/alpine:3.12
+```dockerfile
+FROM arm32v7/alpine
 
 # Everything written here will be run on an emulated architecture
-```
+``` 
 
 It's that _simple_ :).
+
 
 > **Note:** To learn what architectures are available for the given base image you can use `docker manifest inspect` command, for example:
 >
