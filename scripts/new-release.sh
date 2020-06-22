@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -e
 
@@ -10,20 +10,20 @@ set -e
 VERSION=$1
 
 # Make sure $VERSION is provided before proceeding
-if [[ -z "$VERSION" ]]; then
+if [ -z "$VERSION" ]; then
   >&2 printf "\nERR: version missing:  version needs to be passed as the first argument.  Try:\n"
   >&2 printf "\t./%s  %s\n\n"   "$(basename "$0")"  "v4.2.0"
   exit 1
 fi
 
 # Verify there's no uncommitted changes
-if [[ -n "$(git status --untracked-files=no --porcelain)" ]]; then
+if ! git diff-files --quiet; then
   >&2 printf "\nERR: working directory not clean.  Commit, or stash changes to continue.\n\n"
   exit 1
 fi
 
 # Make sure specified $VERSION is present in Dockerfile
-if ! grep -q "$VERSION" "./Dockerfile" ; then
+if ! grep -q "$VERSION" ./Dockerfile; then
   >&2 printf "\nERR: Requested version not present in Dockerfile. Make sure that's what you want to do.\n\n"
   exit 1
 fi
@@ -32,13 +32,12 @@ fi
 git fetch --tags
 
 # Get last build number
-LAST=$(git tag | grep '+build' | sed 's|^.*build||' | sort -h | tail -n 1)
-LAST=${LAST:-1}
+LAST=$(git tag | sed -n 's|^.*build||p' | sort -rh | head -n 1)
 
 # Increment it
-((LAST++))
+LAST=$((LAST+1))
 
-# Construct the full ${TAG}, ex: `v0.7.7+build666`
+# Construct the full $TAG, ex: `v0.7.7+build666`
 TAG="$VERSION+build$LAST"
 
 printf "Creating tag: %s…\t" "$TAG"
