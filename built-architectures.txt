@@ -1,5 +1,5 @@
 # By default only some architectures are built.
-# Any PR adding a valid architecture will be added w/o questions asked :)
+# Any working PR adding a valid arch gets added with no questions asked :)
 # As long as added architecture shows up in:
 #       ./configure --help | grep -oEi '[a-z0-9_]+-linux-user' | cut -d- -f1
 
