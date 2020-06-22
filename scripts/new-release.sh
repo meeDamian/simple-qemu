@@ -31,8 +31,8 @@ fi
 # Update git-tags from the remote
 git fetch --tags
 
-# Get last build number
-LAST=$(git tag | sed -n 's|^.*build||p' | sort -rh | head -n 1)
+# Get last build number used for $VERSION
+LAST=$(git tag | sed -n "s|^$VERSION+build||p" | sort -rn | head -n 1)
 
 # Increment it
 LAST=$((LAST+1))
