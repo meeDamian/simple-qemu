@@ -40,10 +40,10 @@ LAST=$((LAST+1))
 # Construct the full $TAG, ex: `v0.7.7+build666`
 TAG="$VERSION+build$LAST"
 
-printf "Creating tag: %s…\t" "$TAG"
+printf "Creating tag: %s," "$TAG"
 git tag -sa "$TAG" -m "$TAG"
-echo "done"
+echo " done."
 
-printf "Pushing tag: %s…\t" "$TAG"
+printf "Pushing tag: %s…\n" "$TAG"
 git push origin "$TAG"
-echo "All done"
+echo "All done."
