@@ -197,8 +197,6 @@ jobs:
       - name: Get convenience Docker tag suggestions
         id: tags
         uses: meeDamian/tag-suggestions@1.0
-        with:
-          tag: ${{ env.VERSION }}
 
       # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64-build1`
       # `simple-qemu:arm64` -> `meedamian/simple-qemu:v4.2.0-arm64`
