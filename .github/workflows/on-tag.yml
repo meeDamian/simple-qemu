@@ -196,7 +196,7 @@ jobs:
 
       - name: Get convenience Docker tag suggestions
         id: tags
-        uses: meeDamian/tag-suggestions@v1.0.3
+        uses: meeDamian/tag-suggestions@1.0
         with:
           tag: ${{ env.VERSION }}
 
@@ -258,8 +258,8 @@ jobs:
           echo "Logging in as ${DOCKER_USER}…"
           echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u="$DOCKER_USER" --password-stdin
 
-      - name: Push all images
-        run: docker images "$SLUG" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
+#      - name: Push all images
+#        run: docker images "$SLUG" --format "{{.Repository}}:{{.Tag}}" | xargs -I % docker push %
 
       - name: Extract binaries from image
         run: |
