@@ -1,0 +1,4 @@
+314c314
+<         if [ "$host_family" != "$family" ] ; then
+---
+>         if [ -f "$qemu" ] && [ "$host_family" != "$family" ] ; then

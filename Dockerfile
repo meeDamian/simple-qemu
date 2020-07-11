@@ -32,6 +32,9 @@ RUN git clone  -b "$VERSION"  --depth=1  https://git.qemu.org/git/qemu.git
 # All building happens in this directory
 WORKDIR /qemu/
 
+COPY                                              ./qemu-binfmt-conf.sh.patch  .
+RUN patch  /qemu/scripts/qemu-binfmt-conf.sh  /qemu/qemu-binfmt-conf.sh.patch
+
 # Verify that pulled release has been signed by any of the keys imported above
 RUN git verify-tag "$VERSION"
 
@@ -85,7 +88,7 @@ LABEL maintainer="Damian Mee (@meeDamian)"
 
 WORKDIR /usr/local/bin/
 
-# Copy-in the qemu-provided `binfmt` script
+# Copy-in, and fix the qemu-provided `binfmt` script
 COPY  --from=builder /qemu/scripts/qemu-binfmt-conf.sh  .
 
 # Copy-in the `enable.sh` script
