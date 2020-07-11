@@ -80,7 +80,7 @@ RUN du -sh /binaries/*
 ## 1. This image has no `qemu` binaries in it.  It can be used to register/enable qemu on the host system, as well as
 #   allows for interactions with qemu-provided `qemu-binfmt-conf.sh` script
 #   See more: https://github.com/qemu/qemu/blob/v4.2.0/scripts/qemu-binfmt-conf.sh#L172-L215
-FROM busybox:1.31 AS enable
+FROM busybox:1.32 AS enable
 
 ARG VERSION
 
