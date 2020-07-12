@@ -116,7 +116,7 @@ ARG ARCH
 # Make sure that exactly one architecture is provided to ARCH=
 RUN test ! -z "$ARCH" || { \
         printf '\nSingle target architecture (ARCH) has to be provided\n'; \
-        printf '\tex: docker build --build-arg="ARCH=arm-linux-user" … .\n\n'; \
+        printf '\tex: docker build --build-arg="ARCH=aarch64" … .\n\n'; \
         exit 1; \
     }
 
