@@ -49,6 +49,8 @@ fi
 log 'Starting release of:'
 log_tab "$list\n"
 
+sleep 5
+
 for version in $list; do
 	version="v${version#v}"
 	log "Release of $version..."
