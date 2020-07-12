@@ -67,6 +67,8 @@ if [ "$1" = "--reset" ]; then
 	done
 fi
 
+[ "$1" = '--' ] && shift
+
 # Replace current shell with a call registering all available `qemu` binaries.
 # shellcheck disable=SC2068
 exec "$BINFMT_SH"  --qemu-suffix "-static"  $@

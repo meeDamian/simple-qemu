@@ -52,11 +52,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
-          docker run --rm --privileged "$QEMU:enable" --reset -p yes
+          docker run --rm --privileged "$QEMU:v4.2.1-enable" --reset  --persistent yes  --qemu-path /usr/bin/
 
       - name: Register self-compiled qemu
         if: matrix.qemu != 'os' && matrix.qemu != 'no-qemu'
-        run: docker run --rm --privileged "$QEMU:${{ matrix.qemu }}-${{ matrix.arch }}" -p yes
+        run: docker run --rm --privileged "$QEMU:${{ matrix.qemu }}-${{ matrix.arch }}" --reset  --persistent yes
 
 
       - name: Build container
