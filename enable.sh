@@ -1,6 +1,4 @@
-#!/bin/sh
-
-set -e
+#!/bin/sh -e
 
 VERSION= # set in Dockerfile during build
 NAME="$(basename "$0")";
