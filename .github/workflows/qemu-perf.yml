@@ -20,7 +20,8 @@ jobs:
       QEMU: meedamian/simple-qemu
 
     defaults:
-      working-directory: docker-bitcoind/
+      run:
+        working-directory: docker-bitcoind/
 
     strategy:
       fail-fast: false
