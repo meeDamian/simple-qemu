@@ -50,7 +50,7 @@ jobs:
       - name: Install & register OS qemu
         if: matrix.qemu == 'os'
         run: |
-          apt-get update && apt-get install -y qemu-system
+          apt-get update && apt-get install -y qemu-user-static
           docker run --rm --privileged "$QEMU:enable" -p yes
 
       - name: Register self-compiled qemu
