@@ -22,6 +22,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+#        app: # TODO:
+#          - bitcoind
+#          - qemu
+#          - berkeleydb
+
         qemu:
           - os
           - v3.1.1
@@ -52,7 +57,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
-          docker run --rm --privileged "$QEMU:v4.2.1-enable" --reset  --persistent yes  --qemu-path /usr/bin/
+          ls -la /usr/bin/
+          docker run --rm --privileged "$QEMU:enable" --reset  --persistent yes  --qemu-path /usr/bin/
 
       - name: Register self-compiled qemu
         if: matrix.qemu != 'os' && matrix.qemu != 'no-qemu'
