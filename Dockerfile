@@ -38,7 +38,10 @@ RUN git verify-tag "$VERSION"
 # Copy the list of all architectures we want to build into the container
 COPY built-architectures.txt /
 
-COPY          qemu-binfmt-conf.sh.patch  .
+# Copy, verify, and apply patch on qemu-provided script
+#   original file: https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
+COPY qemu-binfmt-conf.sh.patch .
+RUN echo "e66c092f4a0ebc505d51aff1465362db1d1f2856439d611d323aababd09e6ae0  qemu-binfmt-conf.sh.patch" | sha256sum -c -
 RUN patch  -i qemu-binfmt-conf.sh.patch  scripts/qemu-binfmt-conf.sh
 
 # Remove all comments, new lines, etc from the file.  Leave the essence only.
@@ -89,14 +92,13 @@ LABEL maintainer="Damian Mee (@meeDamian)"
 WORKDIR /usr/local/bin/
 
 # Copy-in, and fix the qemu-provided `binfmt` script
-#   src: https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
 COPY  --from=builder /qemu/scripts/qemu-binfmt-conf.sh  .
 
 # Copy-in the `enable.sh` script
 COPY enable.sh qemu-enable
 
 # Verify that copied `qemu-enable` script is what's expected
-RUN echo "0194f11dfd36afb08e8cb17dfdc594a87fadf3d1726ec1e40b58f276c6ad8649  qemu-enable" | sha256sum -c -
+RUN echo "cde32e4bd50b71bf79a90ed32d4a19e9ec908d404c308c33ed799138e7c7fd27  qemu-enable" | sha256sum -c -
 
 RUN sed -Ei "s|^(VERSION)=|\1=$VERSION|" qemu-enable
 
