@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Clone lncm/bitcoind
-        run: git clone https://github.com/lncm/docker-bitcoind.git
+        run: cd "$HOME"; git clone https://github.com/lncm/docker-bitcoind.git
 
       - name: Log start time
         run: touch /tmp/start
