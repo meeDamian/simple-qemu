@@ -69,6 +69,7 @@ jobs:
     strategy:
       matrix:
         arch:
+          - i386
           - arm
           - aarch64
           - riscv64

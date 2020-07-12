@@ -3,6 +3,7 @@
 # As long as added architecture shows up in:
 #       ./configure --help | grep -oEi '[a-z0-9_]+-linux-user' | cut -d- -f1
 
+i386        # The 32-bit classic
 arm         # AKA: arm32, arm32v6, arm32v7
 aarch64     # AKA: arm64, arm64v8
 riscv32     # RISC-V 32-bit

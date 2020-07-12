@@ -121,6 +121,7 @@ jobs:
     strategy:
       matrix:
         arch:
+          - i386
           - arm
           - aarch64
           - riscv64
@@ -191,6 +192,8 @@ jobs:
       - name: Create arch aliases
         run: |
           docker tag  "$APP:arm"      "$APP:arm32v7"
+          docker tag  "$APP:i368"     "$APP:x86"
+          docker tag  "$APP:i368"     "$APP:i686"
           docker tag  "$APP:aarch64"  "$APP:arm64v8"
           docker tag  "$APP:aarch64"  "$APP:arm64"
 
