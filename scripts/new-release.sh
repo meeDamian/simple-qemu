@@ -1,49 +1,77 @@
-#!/usr/bin/env sh
-
-set -e
+#!/bin/sh -e
 
 #
-## Given version, this script creates & pushes a relevant git-tag.
+## Given version, list of versions, or 'all', this script creates & pushes a relevant git-tag.
 #
 
-# Make sure $1 / $VERSION is provided before proceeding
-if [ -z "$1" ]; then
-  >&2 printf "\nERR: version missing:  version needs to be passed as the first argument.  Try:\n"
-  >&2 printf "\t./%s  %s\n\n"   "$(basename "$0")"  "v4.2.0"
-  exit 1
+NAME="$(basename "$0")"
+
+say()     { printf %b  "$*" >&2 ;}
+log()     { say        "$*\n"   ;}
+pad()     { say    "    $*"     ;}
+arr()     { pad     "-> $*"     ;}
+log_tab() { log      "\t$*"     ;}
+err()     { log "\nERR: $*"     ;}
+ok()      { log "OK${1:+: $1}"  ;}
+
+if [ "$#" = '0' ]; then
+	err "Required VERSION missing, ex: v5.0.0\n"
+	log "Usage: $NAME all"
+	log "       $NAME VERSION ...\n"
+	exit 1
 fi
 
-# Required version (make sure it always starts with v)
-VERSION="v${1#v}"
+if [ "$#" = '1' ] && [ "$1" != 'all' ] && ! grep -q "^ARG VERSION=v${1#v}" ./Dockerfile; then
+	err 'Requested VERSION not present in Dockerfile.'
+	log_tab "need: ARG VERSION=$1"
+	log_tab "have: $(grep -Eo '^ARG VERSION=[^ ]+' ./Dockerfile)\n"
+	exit 1
+fi
 
 # Verify there's no uncommitted changes
 if ! git diff-files --quiet; then
-  >&2 printf "\nERR: working directory not clean.  Commit, or stash changes to continue.\n\n"
-  exit 1
-fi
-
-# Make sure specified $VERSION is present in Dockerfile
-if ! grep -q "VERSION=$VERSION" ./Dockerfile; then
-  >&2 printf "\nERR: Requested version not present in Dockerfile. Make sure that's what you want to do.\n\n"
-  exit 1
+	err 'Working directory not clean. Commit or stash to continue.\n'
+	git status -s >&2
+	log
+	exit 1
 fi
 
 # Update git-tags from the remote
+say 'Updating git-tag list... '
 git fetch --tags
+ok
 
-# Get last build number used for $VERSION
-LAST="$(git tag | sed -n "s|^$VERSION+build||p" | sort -rn | head -n 1)"
+list="$*"
+if [ "$1" = 'all' ]; then
+	list=$(git tag | sed -E 's|(v[^+]*).*|\1|p' | sort -Vu | tr '\n' ' ')
+fi
 
-# Increment it
-LAST="$((LAST+1))"
+log 'Starting release of:'
+log_tab "$list\n"
 
-# Construct the full $TAG, ex: `v0.7.7+build666`
-TAG="$VERSION+build$LAST"
+for version in $list; do
+	version="v${version#v}"
+	log "Release of $version..."
 
-printf "Creating tag: %s, " "$TAG"
-git tag -sa "$TAG" -m "$TAG"
-echo "done."
+	# Get last build number used for $version
+	LAST="$(git tag | sed -n "s|^$version+build||p" | sort -rn | head -n 1)"
 
-printf "Pushing tag: %s…\n" "$TAG"
-git push origin "$TAG"
-echo "All done."
+	# Increment it
+	LAST="$((LAST+1))"
+
+	# Construct the full $TAG, ex: `v0.7.7+build666`
+	TAG="$version+build$LAST"
+	arr "$TAG\n"
+
+	arr 'Creating... '
+	git tag -sa "$TAG" -m "$TAG"
+	ok
+
+	arr "Pushing...\n"
+	git push origin "$TAG"
+	pad 'OK\n\n'
+
+	sleep 1
+done
+
+ok "All done"
