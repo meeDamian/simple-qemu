@@ -32,10 +32,10 @@ fi
 git fetch --tags
 
 # Get last build number used for $VERSION
-LAST=$(git tag | sed -n "s|^$VERSION+build||p" | sort -rn | head -n 1)
+LAST="$(git tag | sed -n "s|^$VERSION+build||p" | sort -rn | head -n 1)"
 
 # Increment it
-LAST=$((LAST+1))
+LAST="$((LAST+1))"
 
 # Construct the full $TAG, ex: `v0.7.7+build666`
 TAG="$VERSION+build$LAST"
