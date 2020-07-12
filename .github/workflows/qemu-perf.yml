@@ -19,10 +19,6 @@ jobs:
       MINOR: '0.20'
       QEMU: meedamian/simple-qemu
 
-    defaults:
-      run:
-        working-directory: docker-bitcoind/
-
     strategy:
       fail-fast: false
       matrix:
@@ -42,8 +38,10 @@ jobs:
           - arch: native
 
     steps:
-      - name: Clone lncm/bitcoind
-        run: cd "$HOME"; git clone https://github.com/lncm/docker-bitcoind.git
+      - uses: actions/checkout@v2
+        with:
+          repository: lncm/docker-bitcoind
+          fetch-depth: 1
 
       - name: Log start time
         run: touch /tmp/start
