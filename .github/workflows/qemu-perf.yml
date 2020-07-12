@@ -35,7 +35,7 @@ jobs:
           - arm64v8
 
         include:
-          - arch: native
+          - qemu: no-qemu
 
     steps:
       - uses: actions/checkout@v2
@@ -54,11 +54,13 @@ jobs:
           docker run --rm --privileged "$QEMU:enable" -p yes
 
       - name: Register self-compiled qemu
-        if: matrix.arch != 'native' && matrix.qemu != 'os'
+        if: matrix.qemu != 'os' && matrix.qemu != 'no-qemu'
         run: docker run --rm --privileged "$QEMU:${{ matrix.qemu }}-${{ matrix.arch }}" -p yes
 
 
       - name: Build container
+        env:
+          ARCH: ${{ matrix.arch }}
         run: docker build --tag="$APP" ${ARCH:+--build-arg="ARCH=$ARCH"} "$MINOR/"
 
 
@@ -83,6 +85,8 @@ jobs:
           fi
 
       - name: Calculate execution time
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
           START=$(date -r /tmp/start +%s)
           NOW=$(date +%s)
@@ -109,7 +113,7 @@ jobs:
 
           mkdir -p stat
 
-          echo "$OUT" > stat/${{ matrix.qemu }}-${{ matrix.arch }}
+          echo "$OUT" > "stat/${{ matrix.qemu }}-${ARCH:-$(uname -m)}"
 
       - name: Save execution time as an artifact
         uses: actions/upload-artifact@v1.0.0
@@ -131,12 +135,12 @@ jobs:
 
       - name: Aggregate results
         run: |
-          touch ./all-stats
+          printf "Baseline: %s\n\n" "$(cat ./stats/no-qemu*)" > ./all-stats
 
           echo '| version | arm32v7 | arm64v8'  >> ./all-stats
           echo '|:-------:|--------:|--------:' >> ./all-stats
 
-          for ver in $(ls ./stats/* | awk -F/ '{print $NF}' | cut -d- -f1 | uniq); do
+          for ver in $(ls ./stats/v* | awk -F/ '{print $NF}' | cut -d- -f1 | uniq); do
             line="| **${ver}**"
 
             line="$line | $(cat "./stats/$ver-arm32v7" | tr -d '\n')"
@@ -144,6 +148,8 @@ jobs:
 
             echo "$line" >> ./all-stats
           done
+
+          (cd stats; echo "| **default** | $(cat ./os-arm32v7) | $(cat ./os-arm64v8)") >> ./all-stats
 
           cat ./all-stats
 
