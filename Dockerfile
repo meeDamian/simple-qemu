@@ -32,14 +32,14 @@ RUN git clone  -b "$VERSION"  --depth=1  https://git.qemu.org/git/qemu.git
 # All building happens in this directory
 WORKDIR /qemu/
 
-COPY                                              ./qemu-binfmt-conf.sh.patch  .
-RUN patch  /qemu/scripts/qemu-binfmt-conf.sh  /qemu/qemu-binfmt-conf.sh.patch
-
 # Verify that pulled release has been signed by any of the keys imported above
 RUN git verify-tag "$VERSION"
 
 # Copy the list of all architectures we want to build into the container
 COPY built-architectures.txt /
+
+COPY          qemu-binfmt-conf.sh.patch  .
+RUN patch  -i qemu-binfmt-conf.sh.patch  scripts/qemu-binfmt-conf.sh
 
 # Remove all comments, new lines, etc from the file.  Leave the essence only.
 RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
@@ -89,6 +89,7 @@ LABEL maintainer="Damian Mee (@meeDamian)"
 WORKDIR /usr/local/bin/
 
 # Copy-in, and fix the qemu-provided `binfmt` script
+#   src: https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
 COPY  --from=builder /qemu/scripts/qemu-binfmt-conf.sh  .
 
 # Copy-in the `enable.sh` script
