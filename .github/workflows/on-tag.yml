@@ -266,8 +266,10 @@ jobs:
           docker rm "$ID"
 
           cd binaries/
-          gzip -S "-$VERSION.gz" qemu-*-static
-          find . ! -name '*.gz' -delete
+          for q in qemu-*-static; do
+            tar -cavf "$q-$VERSION.tgz" "$q"
+          done
+          find . ! -name '*.tgz' -delete
 
       - name: Create & print SHA256SUMS file
         run: |
