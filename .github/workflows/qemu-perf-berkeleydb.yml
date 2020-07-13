@@ -1,13 +1,13 @@
-name: Perf-check qemu versions
+name: Qemu perf on berkeleydb
 
 env:
-  APP: bitcoind
+  APP: berkeleydb
 
 on:
   push:
     branches: [ 'perf' ]
   schedule:
-    - cron: '2 1 * * *'
+    - cron: '3 3 * * 3'
 
 jobs:
   build:
@@ -16,17 +16,11 @@ jobs:
 
     env:
       DOCKER_BUILDKIT: 1
-      MINOR: '0.20'
       QEMU: meedamian/simple-qemu
 
     strategy:
       fail-fast: false
       matrix:
-#        app: # TODO:
-#          - bitcoind
-#          - qemu
-#          - berkeleydb
-
         qemu:
           - os
           - v3.1.1
@@ -45,7 +39,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: lncm/docker-bitcoind
+          repository: lncm/docker-berkeleydb
           fetch-depth: 1
 
       - name: Log start time
@@ -57,6 +51,9 @@ jobs:
         run: |
           sudo apt-get update || true
           sudo apt-get install -y qemu-user-static
+
+          qemu-arm-static     -version | head -n 1
+          qemu-aarch64-static -version | head -n 1
 
           volume() { printf '%s:%s:ro' "/usr/bin/qemu-$1-static" "/usr/local/bin/qemu-$1-static" ;}
 
@@ -76,28 +73,7 @@ jobs:
       - name: Build container
         env:
           ARCH: ${{ matrix.arch }}
-        run: docker build --tag="$APP" ${ARCH:+--build-arg="ARCH=$ARCH"} "$MINOR/"
-
-
-      - name: Make sure binaries can be run
-        run: |
-          run() {
-            ENTRYPOINT="${1:-$APP}"; shift
-            ARGS=${*:-"--version"}
-
-            printf "\n$ %s %s\n"  "$ENTRYPOINT"  "$ARGS"
-            docker run --rm  --entrypoint "$ENTRYPOINT"  "$APP"  $ARGS
-          }
-
-          run  uname -a
-          run  bitcoind
-          run  bitcoin-cli
-          run  bitcoin-tx --help | head -n 1
-
-          # If version higher, or equal than v0.18.0, also run `bitcoin-wallet` binary
-          if [ "${MINOR#0.}" -ge "18" ]; then
-            run  bitcoin-wallet --help | head -n 1
-          fi
+        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  .
 
       - name: Calculate execution time
         env:
