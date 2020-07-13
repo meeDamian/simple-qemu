@@ -57,8 +57,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
-          ls -la /usr/bin/
-          docker run --rm --privileged "$QEMU:enable" --reset  --persistent yes  --qemu-path /usr/bin/
+
+          volume() { printf '%s:%s:ro' "/usr/bin/qemu-$1-static" "/usr/local/bin/qemu-$1-static" ;}
+
+          docker run --rm \
+            --privileged  \
+            --volume "$(volume aarch64)" \
+            --volume "$(volume arm)"     \
+            meedamian/simple-qemu:enable \
+              --reset \
+              --persistent yes
 
       - name: Register self-compiled qemu
         if: matrix.qemu != 'os' && matrix.qemu != 'no-qemu'
