@@ -55,7 +55,7 @@ jobs:
       - name: Install & register OS qemu
         if: matrix.qemu == 'os'
         run: |
-          sudo apt-get update
+          sudo apt-get update || true
           sudo apt-get install -y qemu-user-static
 
           volume() { printf '%s:%s:ro' "/usr/bin/qemu-$1-static" "/usr/local/bin/qemu-$1-static" ;}
