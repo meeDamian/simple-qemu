@@ -53,10 +53,15 @@ jobs:
         run: |
           mkdir -p stat
 
-          VARIANT="${{ matrix.qemu }}${ARCH:+-}$ARCH"
+          variant="${{ matrix.qemu }}${ARCH:+-}$ARCH"
 
-          echo ::set-env name=VARIANT::"$VARIANT"
-          (cd simple-qemu; git rev-parse HEAD) | tee "stat/$VARIANT-commit"
+          echo ::set-env name=VARIANT::"$variant"
+          (cd simple-qemu; git rev-parse HEAD) | tee "stat/$variant-commit"
+
+          sanity_check="simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh"
+          if [ -f "$sanity_check" ]; then
+            echo ::set-env name=SANITY_CHECK::"$sanity_check"
+          fi
 
       - name: Install & register OS's qemu-user-static
         if: matrix.qemu == 'os'
@@ -99,15 +104,8 @@ jobs:
         run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$APP/"
 
       - name: Make sure binaries can be run
-        env:
-          SANITY_CHECK: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
-        run: |
-          if [ ! -f "$SANITY_CHECK" ]; then
-            echo "No tests found.  Skipping."
-            exit 0
-          fi
-
-          "./$SANITY_CHECK"
+        if: env.SANITY_CHECK
+        run: ./"$SANITY_CHECK"
 
       - name: Calculate execution time
         env:
