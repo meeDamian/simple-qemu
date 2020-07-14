@@ -1,0 +1,212 @@
+name: Perf test (Berkeley DB)
+
+env:
+  REPO: lncm/docker-berkeleydb
+  APP: berkeleydb
+
+on:
+  push:
+    branches: [ 'perf' ]
+  schedule:
+    - cron: '3 3 * * 3'
+
+jobs:
+  build:
+    name: Build ${{ env.APP }}
+    runs-on: ubuntu-18.04
+
+    env:
+      DOCKER_BUILDKIT: 1
+      QEMU: meedamian/simple-qemu
+
+    strategy:
+      fail-fast: false
+      matrix:
+        qemu:
+          - os
+          - v5.0.0
+          - v4.2.1
+          - v4.1.1
+          - v4.0.1
+          - v3.1.1
+
+        arch:
+          - arm32v7
+          - arm64v8
+
+        include:
+          - qemu: metal
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: ${{ env.APP }}
+          repository: ${{ env.REPO }}
+
+      - uses: actions/checkout@v2
+        with:
+          path: simple-qemu
+
+      - name: Log start time & git-hash
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p stat
+
+          VARIANT="${{ matrix.qemu }}${ARCH:+-}$ARCH"
+
+          echo ::set-env name=VARIANT::"$VARIANT"
+          git rev-parse HEAD | tee "stat/$VARIANT-commit"
+
+          # TODO: temp
+          echo "N: ${{ github.event_name }}"
+          echo "P: ${{ github.event_path }}"
+          echo "O: ${{ toJson(github.event) }}"
+
+      - name: Install & register OS's qemu-user-static
+        if: matrix.qemu == 'os'
+        run: |
+          echo "::group::Install"
+          sudo apt-get update || true
+          sudo apt-get install -y qemu-user-static
+          echo "::endgoup::"
+
+          for arch in arm aarch64; do
+            "qemu-$arch-static" -version | tee -a stat/os-qemu-raw | sed -nE 's|qemu-([^ ]+) version ([^ ]+).*|\2 \1|p' | tee -a stat/os-qemu
+          done
+
+          cat stat/os-qemu*
+
+          echo "::group::Register"
+          volume() {
+            printf '%s:%s'  "/usr/bin/qemu-$1-static"  "/usr/local/bin/qemu-$1-static"
+          }
+
+          docker run --rm  \
+            --privileged   \
+            --volume "$(volume aarch64):ro" \
+            --volume "$(volume arm):ro"     \
+            "$QEMU:enable" \
+              --reset      \
+              --persistent yes
+
+      - name: Register simple-qemu
+        if: matrix.qemu != 'os' && matrix.qemu != 'metal'
+        run: |
+          docker run --rm \
+            --privileged  \
+            "$QEMU:$VARIANT" \
+              --reset        \
+              --persistent yes
+
+      - name: Build container
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$APP/"
+
+      - name: Make sure binaries can be run
+        env:
+          SANITY_CHECK: simple-qemu/scripts/perf-sanity-$APP.sh
+        run: |
+          echo "$SANITY_CHECK"
+
+          if [ ! -f "$SANITY_CHECK" ]; then
+            echo "No tests found.  Skipping."
+            exit 0
+          fi
+
+          "./$SANITY_CHECK"
+
+      - name: Calculate execution time
+        env:
+          MIN:    60
+          HOUR: 3600
+          DAY: 86400
+        run: |
+          NOW=$(date +%s)
+          START=$(date -r stat/ +%s)
+
+          diff=$((NOW - START))
+
+          secs=$((   diff          % 60))
+          mins=$(($((diff / MIN )) % 60))
+          hrs=$(( $((diff / HOUR)) % 24))
+          days=$((   diff / DAY ))
+
+          [ "$days" = "0" ] && days=
+          [ "$hrs"  = "0" ] && hrs=
+
+          duration="$(printf '%s%s%02dm:%02ds' "$days${days:+d }"  "$hrs${hrs:+h:}" "$mins" "$secs")"
+          echo "${duration#0}" | tee "stat/$VARIANT-duration"
+
+      - name: Handle prior failure
+        if: failure()
+        run: echo "FAIL" > "stat/$VARIANT-duration"
+
+      - name: Save execution time as an artifact
+        uses: actions/upload-artifact@v1.0.0
+        if: always()
+        with:
+          name: stats
+          path: stat/
+
+  comment:
+    name: Report result
+    runs-on: ubuntu-18.04
+
+    needs: build
+    if: always()
+
+    steps:
+      - name: Download perf stats
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: stats
+
+      - name: Aggregate results
+        run: |
+          (
+            cd stats
+
+            printf '### Perf check (%s)\n\n' "$APP"
+
+            COMMIT="$(cat *-commit | sort -u | head -n1)"
+
+            printf 'Source: [`%s`]\n' "$COMMIT"
+            printf 'Trigger: %s\n' "…?"
+            printf "Baseline: %s (run w/o emulation)\n\n" "$(cat metal-duration)"
+
+            echo "[$COMMIT]: https://github.com/$REPO/tree/$COMMIT"
+
+            line()   { printf '|%-14s|%12s|%12s\n' "$1" "$2" "$3" ;}
+            row()    { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
+            result() {
+              if [ "$1" = "os" ]; then
+                ver="os/v$(cat os-qemu | grep -Eo '(\.?[0-9]*){3}' | head -n1)"
+              fi
+
+              row "**${ver:-$1}**" "$(cat "$1-arm32v7-duration")" "$(cat "$1-arm64v8-duration")"
+            }
+
+            row    qemu  arm32v7  arm64v8
+            line   ----  ------:  ------: | tr ' ' -
+            result os
+            for ver in v*duration; do
+              result "${ver%%-*}"
+            done
+
+            echo
+          ) | tee all-stats
+
+          echo ::set-env name=RESULTS::"$(cat all-stats | sed -z 's/\n/\\n/g')"
+
+#      - uses: actions/github-script@0.8.0
+#        with:
+#          github-token: ${{ secrets.GITHUB_TOKEN_NOEXPIRE }}
+#          script: |
+#            github.issues.createComment({
+#              owner: 'lncm',
+#              repo: 'docker-bitcoind',
+#              issue_number: 9,
+#              body: `Today's results:\n\n${process.env.RESULTS.replace(/\\n/g, '\n')}`
+#            })
