@@ -56,7 +56,7 @@ jobs:
           variant="${{ matrix.qemu }}${ARCH:+-}$ARCH"
 
           echo ::set-env name=VARIANT::"$variant"
-          (cd simple-qemu; git rev-parse HEAD) | tee "stat/$variant-commit"
+          (cd "$APP"; git rev-parse HEAD) | tee "stat/$variant-commit"
 
           sanity_check="simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh"
           if [ -f "$sanity_check" ]; then
