@@ -102,8 +102,9 @@ jobs:
 
       - name: Make sure binaries can be run
         env:
-          SANITY_CHECK: simple-qemu/scripts/perf-sanity-$APP.sh
+          SANITY_CHECK: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
         run: |
+          # TODO: remove lone below
           echo "$SANITY_CHECK"
 
           if [ ! -f "$SANITY_CHECK" ]; then
@@ -168,11 +169,11 @@ jobs:
 
             COMMIT="$(sort -u *-commit | head -n1)"
 
-            printf 'Source: [`%s`]\n' "$COMMIT"
+            printf 'Source: [`%s@%s`][src]\n' "$REPO" "$COMMIT"
             printf 'Trigger: %s\n' "${{ github.event_name }}"
             printf "Baseline: %s (run w/o emulation)\n\n" "$(cat metal-duration)"
 
-            echo "[$COMMIT]: https://github.com/$REPO/tree/$COMMIT"
+            printf '[src]: https://github.com/%s/tree/%s\n\n' "$REPO" "$COMMIT"
 
             line()   { printf '|%-14s|%12s|%12s\n' "$1" "$2" "$3" ;}
             row()    { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
@@ -188,6 +189,7 @@ jobs:
             line   ----  ------:  ------: | tr ' ' -
             result os
             for ver in v*duration; do
+              echo ">>> $ver ||| ${ver%%-*} <<<"
               result "${ver%%-*}"
             done
 
@@ -196,13 +198,13 @@ jobs:
 
           echo ::set-env name=RESULTS::"$(sed -z 's/\n/\\n/g' all-stats)"
 
-#      - uses: actions/github-script@0.8.0
-#        with:
-#          github-token: ${{ secrets.GITHUB_TOKEN_NOEXPIRE }}
-#          script: |
-#            github.issues.createComment({
-#              owner: 'lncm',
-#              repo: 'docker-bitcoind',
-#              issue_number: 9,
-#              body: `Today's results:\n\n${process.env.RESULTS.replace(/\\n/g, '\n')}`
-#            })
+      - uses: actions/github-script@v2
+        with:
+          github-token: ${{ secrets.GH_TOKEN_NOEXPIRE }}
+          script: |
+            github.issues.createComment({
+              issue_number: 15,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${process.env.RESULTS.replace(/\\n/g, '\n')}`
+            })
