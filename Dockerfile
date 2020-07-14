@@ -41,7 +41,7 @@ COPY built-architectures.txt /
 # Copy, verify, and apply patch on qemu-provided script
 #   original file: https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
 COPY qemu-binfmt-conf.sh.patch .
-RUN echo "e66c092f4a0ebc505d51aff1465362db1d1f2856439d611d323aababd09e6ae0  qemu-binfmt-conf.sh.patch" | sha256sum -c -
+RUN echo '71490acd7e73ea0f82f050a34794eb53c72de4ee7c1023e6bd7450e36f0ddfdd  qemu-binfmt-conf.sh.patch' | sha256sum -c -
 RUN patch  -i qemu-binfmt-conf.sh.patch  scripts/qemu-binfmt-conf.sh
 
 # Remove all comments, new lines, etc from the file.  Leave the essence only.
