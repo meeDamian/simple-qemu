@@ -162,10 +162,10 @@ jobs:
             row()    { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
             result() {
               if [ "$1" = "os" ]; then
-                ver="os/v$(grep -Eo '(\.?[0-9]*){3}' os-qemu | head -n1)"
+                os_ver="os/v$(grep -Eo '(\.?[0-9]*){3}' os-qemu | head -n1)"
               fi
 
-              row "**${ver:-$1}**" "$(cat "$1-arm32v7-duration")" "$(cat "$1-arm64v8-duration")"
+              row "**${os_ver:-$1}**" "$(cat "$1-arm32v7-duration")" "$(cat "$1-arm64v8-duration")"
             }
 
             COMMIT="$(sort -u *-commit | head -n1)"
@@ -180,7 +180,6 @@ jobs:
 
             result os
             for ver in v*duration; do
-              echo ">>> $ver ||| ${ver%%-*} <<<"
               result "${ver%%-*}"
             done
 
