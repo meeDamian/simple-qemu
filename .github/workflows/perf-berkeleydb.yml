@@ -158,16 +158,6 @@ jobs:
           (
             cd stats
 
-            printf '### Perf check (%s)\n\n' "$APP"
-
-            COMMIT="$(sort -u *-commit | head -n1)"
-
-            printf 'Source: [`%s@%s`][src]\n' "$REPO" "$COMMIT"
-            printf 'Trigger: %s\n' "${{ github.event_name }}"
-            printf "Baseline: %s (run w/o emulation)\n\n" "$(cat metal-duration)"
-
-            printf '[src]: https://github.com/%s/tree/%s\n\n' "$REPO" "$COMMIT"
-
             line()   { printf '|%-14s|%12s|%12s\n' "$1" "$2" "$3" ;}
             row()    { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
             result() {
@@ -178,8 +168,16 @@ jobs:
               row "**${ver:-$1}**" "$(cat "$1-arm32v7-duration")" "$(cat "$1-arm64v8-duration")"
             }
 
+            COMMIT="$(sort -u *-commit | head -n1)"
+
+            printf '### Perf check (%s)\n\n' "$APP"
+            printf 'Source: [`%s@%s`](https://github.com/%s/tree/%s)\n' "$REPO" "$COMMIT" "$REPO" "$COMMIT"
+            printf 'Trigger: %s\n' "${{ github.event_name }}"
+            printf "Baseline: %s (no emulation)\n\n" "$(cat metal-duration)"
+
             row    qemu  arm32v7  arm64v8
             line   ----  ------:  ------: | tr ' ' -
+
             result os
             for ver in v*duration; do
               echo ">>> $ver ||| ${ver%%-*} <<<"
