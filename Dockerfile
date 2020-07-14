@@ -17,10 +17,7 @@ ENV KEYS E1A5C593CD419DE28E8315CF3C2525ED14360CDE \
          CEACC9E15534EBABB82D3FA03353C9CEF108B584 \
          16ACFD5FBD34880E584ECD2975E9CA927C18C076 \
          8695A8BFD3F97CDAAC35775A9CA4ABB381AB73C8
-
 RUN timeout 16s  gpg  --keyserver keyserver.ubuntu.com  --recv-keys $KEYS
-
-# Print imported keys, but also ensure there's no other keys in the system
 RUN gpg --list-keys | tail -n +3 | tee /tmp/keys.txt && \
     gpg --list-keys $KEYS | diff - /tmp/keys.txt
 
@@ -37,16 +34,16 @@ RUN git verify-tag "$VERSION"
 
 # Copy the list of all architectures we want to build into the container
 COPY built-architectures.txt /
-# Remove all comments, new lines, etc from the file.  Leave the essence only.
 RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
 RUN printf 'Target architectures to be built: %s\n' "$(cat /built-architectures.txt | tr '\n' ' ')"
 
 # Configure output binaries to be static (no external deps), and only build what's listed in `/built-architectures.txt`
 RUN ./configure --static \
-        --target-list=$(cat /built-architectures.txt \
-            | xargs -I% echo "%-linux-user" \
-            | tr '\n' ',' \
-            | head -c-1)
+        --with-pkgversion="lncm-$VERSION${BUILD:+.b}$BUILD" \
+        --target-list=$(awk '{printf s $0 "-linux-user"; s=","}' /built-architectures.txt) \
+        --disable-blobs --disable-iconv --disable-vnc --disable-pie --disable-kvm \
+        --audio-drv-list= \
+        --enable-linux-user --enable-attr  --enable-tcg
 
 # Do the compiling thing
 RUN make -j$(($(nproc) + 1))
@@ -84,7 +81,7 @@ RUN chmod +x "$BINFMT"
 #
 
 #
-## 1. First image has no `qemu` binaries in it.  It can be used to register/enable qemu on the host system, as well as
+## 1. This image has no `qemu` binaries in it.  It can be used to register/enable qemu on the host system, as well as
 #   allows for interactions with qemu-provided `qemu-binfmt-conf.sh` script
 #   See more: https://github.com/qemu/qemu/blob/v4.2.0/scripts/qemu-binfmt-conf.sh#L172-L215
 FROM busybox:1.32 AS enable
