@@ -64,13 +64,11 @@ jobs:
           echo "::group::Install"
           sudo apt-get update || true
           sudo apt-get install -y qemu-user-static
-          echo "::endgoup::"
+          echo ::endgroup::
 
           for arch in arm aarch64; do
             "qemu-$arch-static" -version | sed -nE 's|qemu-([^ ]+) version ((\.?[0-9]*)+).*|\2 \1|p' | tee -a stat/os-qemu
           done
-
-          cat stat/os-qemu*
 
           echo "::group::Register"
           volume() {
@@ -84,7 +82,7 @@ jobs:
             "$QEMU:enable" \
               --reset      \
               --persistent yes
-          echo "::endgoup::"
+          echo ::endgroup::
 
       - name: Register simple-qemu
         if: matrix.qemu != 'os' && matrix.qemu != 'metal'
@@ -104,9 +102,6 @@ jobs:
         env:
           SANITY_CHECK: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
         run: |
-          # TODO: remove lone below
-          echo "$SANITY_CHECK"
-
           if [ ! -f "$SANITY_CHECK" ]; then
             echo "No tests found.  Skipping."
             exit 0
