@@ -9,6 +9,7 @@ ARG VERSION=v5.0.0
 FROM debian:buster-slim AS builder
 
 ARG VERSION
+ARG BUILD
 
 RUN apt-get update && \
     apt-get -y install gpg git python gcc make pkg-config libglib2.0-dev zlib1g-dev libpixman-1-dev flex bison
@@ -38,12 +39,14 @@ RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
 RUN printf 'Target architectures to be built: %s\n' "$(cat /built-architectures.txt | tr '\n' ' ')"
 
 # Configure output binaries to be static (no external deps), and only build what's listed in `/built-architectures.txt`
-RUN ./configure --static \
-        --with-pkgversion="lncm-$VERSION${BUILD:+.b}$BUILD" \
+RUN ./configure --with-pkgversion="lncm-$VERSION${BUILD:+.b}$BUILD" \
         --target-list=$(awk '{printf s $0 "-linux-user"; s=","}' /built-architectures.txt) \
         --disable-blobs --disable-iconv --disable-vnc --disable-pie --disable-kvm \
         --audio-drv-list= \
-        --enable-linux-user --enable-attr  --enable-tcg
+        --enable-attr \
+        --enable-linux-user \
+        --enable-tcg \
+        --static
 
 # Do the compiling thing
 RUN make -j$(($(nproc) + 1))
