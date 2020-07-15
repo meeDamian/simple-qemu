@@ -190,7 +190,7 @@ jobs:
 
             result os
             result master
-            for ver in v*duration; do
+            for ver in $(ls v*duration | cut -d- -f1 | uniq); do
               result "${ver%%-*}"
             done
 
