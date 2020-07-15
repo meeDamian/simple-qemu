@@ -24,6 +24,7 @@ jobs:
       matrix:
         qemu:
           - os
+          - master
           - v5.0.0
           - v4.2.1
           - v4.1.1
@@ -47,20 +48,26 @@ jobs:
         with:
           path: simple-qemu
 
-      - name: Log start time & git-hash
+      - name: Create VARIANT env var
         env:
           ARCH: ${{ matrix.arch }}
+        run: echo ::set-env name=VARIANT::"${{ matrix.qemu }}${ARCH:+-}$ARCH"
+
+      # Has to happen before time start
+      - name: Build simple-qemu master
+        if: matrix.qemu == 'master'
+        run: docker build --target single --tag "$QEMU:$VARIANT" --build-arg "ARCH=${{ matrix.arch }}"  simple-qemu/
+
+      - name: Log start time & git-hash
+        env:
+          CHECK_FILE: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
         run: |
           mkdir -p stat
 
-          variant="${{ matrix.qemu }}${ARCH:+-}$ARCH"
+          (cd "$APP"; git rev-parse HEAD) | tee "stat/$VARIANT-commit"
 
-          echo ::set-env name=VARIANT::"$variant"
-          (cd "$APP"; git rev-parse HEAD) | tee "stat/$variant-commit"
-
-          sanity_check="simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh"
-          if [ -f "$sanity_check" ]; then
-            echo ::set-env name=SANITY_CHECK::"$sanity_check"
+          if [ -f "$CHECK_FILE" ]; then
+            echo ::set-env name=SANITY_CHECK::"$CHECK_FILE"
           fi
 
       - name: Install & register OS's qemu-user-static
@@ -179,6 +186,7 @@ jobs:
             line   ----  ------:  ------: | tr ' ' -
 
             result os
+            result master
             for ver in v*duration; do
               result "${ver%%-*}"
             done
