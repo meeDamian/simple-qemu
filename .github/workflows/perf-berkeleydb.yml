@@ -138,7 +138,7 @@ jobs:
 
       - name: Handle if failure
         if: failure()
-        run: echo "FAIL" > "stat/$VARIANT-duration"
+        run: mkdir -p stat && echo FAIL > "stat/$VARIANT-duration"
 
       - name: Save execution time as an artifact
         uses: actions/upload-artifact@v1.0.0
