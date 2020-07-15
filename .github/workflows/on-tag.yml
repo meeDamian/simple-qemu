@@ -1,4 +1,4 @@
-name: Build & deploy on git tag push
+name: Deploy tag
 
 env:
   APP: simple-qemu

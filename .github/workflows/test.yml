@@ -1,4 +1,4 @@
-name: Build on push, or PR to master
+name: Check master or PR
 
 env:
   APP: simple-qemu
