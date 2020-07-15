@@ -168,6 +168,7 @@ jobs:
             line() { printf '|%-14s|%12s|%12s\n' "$1" "$2" "$3" ;}
             row()  { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
             result() {
+              os_ver=
               if [ "$1" = "os" ]; then
                 os_ver="os/v$(grep -Eo '(\.?[0-9]*){3}' os-qemu | head -n1)"
               fi
