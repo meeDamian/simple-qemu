@@ -116,27 +116,8 @@ jobs:
         if: env.SANITY_CHECK
         run: ./"$SANITY_CHECK"
 
-      - name: Calculate execution time
-        env:
-          MIN:    60
-          HOUR: 3600
-          DAY: 86400
-        run: |
-          NOW=$(date +%s)
-          START=$(date -r stat/ +%s)
-
-          diff=$((NOW - START))
-
-          secs=$((   diff          % 60))
-          mins=$(($((diff / MIN )) % 60))
-          hrs=$(( $((diff / HOUR)) % 24))
-          days=$((   diff / DAY ))
-
-          [ "$days" = "0" ] && days=
-          [ "$hrs"  = "0" ] && hrs=
-
-          duration="$(printf '%s%s%02dm:%02ds' "$days${days:+d }"  "$hrs${hrs:+h:}" "$mins" "$secs")"
-          echo "${duration#0}" | tee "stat/$VARIANT-duration"
+      - name: Save execution time
+        run: echo "$(( $(date +%s) - $(date -r stat/ +%s) ))" | tee "stat/$VARIANT-duration"
 
       - name: Handle if failure
         if: failure()
@@ -163,41 +144,7 @@ jobs:
           name: stats
 
       - name: Aggregate results
-        run: |
-          (
-            cd stats
-
-            line() { printf '|%-14s|%12s|%12s\n' "$1" "$2" "$3" ;}
-            row()  { line " ${1:--} " " ${2:--} " " ${3:--} " ;}
-            result() {
-              os_ver=
-              if [ "$1" = "os" ]; then
-                os_ver="os/v$(grep -Eo '(\.?[0-9]*){3}' os-qemu | head -n1)"
-              fi
-
-              row "**${os_ver:-$1}**" "$(cat "$1-arm32v7-duration")" "$(cat "$1-arm64v8-duration")"
-            }
-
-            COMMIT="$(sort -u *-commit | head -n1)"
-
-            printf '### Perf check (%s)\n\n' "$APP"
-            printf 'Source: [`%s@%s`](https://github.com/%s/tree/%s)\n' "$REPO" "$COMMIT" "$REPO" "$COMMIT"
-            printf 'Trigger: %s\n' "${{ github.event_name }}"
-            printf "Baseline: %s (no emulation)\n\n" "$(cat metal-duration)"
-
-            row    qemu  arm32v7  arm64v8
-            line   ----  ------:  ------: | tr ' ' -
-
-            result os
-            result master
-            for ver in $(ls v*duration | cut -d- -f1 | uniq); do
-              result "${ver%%-*}"
-            done
-
-            echo
-          ) | tee all-stats
-
-          echo ::set-env name=RESULTS::"$(sed -z 's/\n/\\n/g' all-stats)"
+        run: simple-qemu/scripts/perf-print.sh
 
       - uses: actions/github-script@v2
         with:
