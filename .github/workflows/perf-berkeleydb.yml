@@ -56,7 +56,7 @@ jobs:
       # Has to happen before time start
       - name: Build simple-qemu master
         if: matrix.qemu == 'master'
-        run: docker build --target single --tag "$QEMU:$VARIANT" --build-arg "ARCH=${{ matrix.arch }}"  simple-qemu/
+        run: docker build --target comprehensive --tag "$QEMU:$VARIANT" simple-qemu/
 
       - name: Log start time & git-hash
         env:
