@@ -1,10 +1,6 @@
 #!/bin/sh -e
 
 cd stats/
-ls -la .
-
-sort -n -- *32*duration || true
-sort -n -- *64*duration || true
 
 # Get only slowest, and fastest durations for each arch
 bound32="$(sort -n -- *32*duration | awk 'NR==1 END{print}')"
