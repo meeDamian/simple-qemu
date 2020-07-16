@@ -65,4 +65,4 @@ EOF
 # shellcheck disable=SC2086,SC2048
 [ -x "$(command -v gsed)" ] && sed() { gsed $*; }
 
-echo ::set-env name=RESULTS::"$(sed -z 's/\n/\\n/g' all-stats)"
+echo ::set-env name=RESULTS::"$(cat all-stats)"
