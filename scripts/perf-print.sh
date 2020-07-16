@@ -1,5 +1,9 @@
 #!/bin/sh -e
 
+EVENT_NAME="$1"
+
+echo "GH ev name: >>> $GITHUB_EVENT_NAME <<<"
+
 cd stats/
 
 # Get only slowest, and fastest durations for each arch
@@ -51,7 +55,7 @@ result() {
 
 	printf '### Perf check (%s)\n\n' "$APP"
 	printf 'Source: [`%s@%s`](https://github.com/%s/tree/%s)\n' "$REPO" "$(echo "$commit" | cut -c-7)" "$REPO" "$commit"
-	printf 'Trigger: `%s`\n' "${{ github.event_name }}"
+	printf 'Trigger: `%s`\n' "$EVENT_NAME"
 	printf 'Baseline: **%s** (no emulation)\n\n' "$(duration metal)"
 
 	row    qemu  arm32v7  arm64v8
