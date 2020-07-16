@@ -116,8 +116,11 @@ jobs:
         if: env.SANITY_CHECK
         run: ./"$SANITY_CHECK"
 
-      - name: Save execution time
-        run: echo "$(( $(date +%s) - $(date -r stat/ +%s) ))" | tee "stat/$VARIANT-duration"
+      - name: Get execution time
+        run: |
+          NOW="$(date +%s)"
+          THEN="$(date -r stat/ +%s)"
+          echo "$((NOW - THEN))" | tee "stat/$VARIANT-duration"
 
       - name: Handle if failure
         if: failure()
