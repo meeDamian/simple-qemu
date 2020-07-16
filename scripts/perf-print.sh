@@ -3,8 +3,8 @@
 cd stats/
 
 # Get only slowest, and fastest durations for each arch
-bound32="$(sort -n -- *32*duration | awk 'NR==1 END{print}')"
-bound64="$(sort -n -- *64*duration | awk 'NR==1 END{print}')"
+bound32="$(sort -n -- *32*duration | awk 'NR==1; END{print}')"
+bound64="$(sort -n -- *64*duration | awk 'NR==1; END{print}')"
 
 duration() {
 	if ! diff="$(cat "$1-duration")" || [ -n "${diff##*[!0-9]*}" ]; then
