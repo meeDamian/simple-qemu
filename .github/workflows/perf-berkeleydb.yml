@@ -115,7 +115,17 @@ jobs:
         run: ./"$SANITY_CHECK"
 
       - name: Save execution time
-        run: echo "$(( $(date +%s) - $(date -r stat/ +%s) ))" | tee "stat/$VARIANT-duration"
+        run: |
+          echo "now: $(date +%s)"
+          echo "b4: $(date -r stat/ +%s)"
+          echo '=1==================='
+          ls -la
+          echo '==2=================='
+          ls -la stat/
+          echo '===3================='
+
+
+          echo "$(( $(date +%s) - $(date -r stat/ +%s) ))" | tee "stat/$VARIANT-duration"
 
       - name: Handle if failure
         if: failure()
@@ -144,7 +154,7 @@ jobs:
           name: stats
 
       - name: Aggregate results
-        run: scripts/perf-print.sh "${{ github.event_name }}"
+        run: scripts/perf-print.sh
 
       - uses: actions/github-script@v2
         with:

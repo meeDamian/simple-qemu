@@ -146,7 +146,7 @@ jobs:
           name: stats
 
       - name: Aggregate results
-        run: scripts/perf-print.sh "${{ github.event_name }}"
+        run: scripts/perf-print.sh
 
       - uses: actions/github-script@v2
         with:

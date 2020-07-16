@@ -1,9 +1,5 @@
 #!/bin/sh -e
 
-EVENT_NAME="$1"
-
-echo "GH ev name: >>> $GITHUB_EVENT_NAME <<<"
-
 cd stats/
 
 # Get only slowest, and fastest durations for each arch
@@ -11,13 +7,8 @@ bound32="$(sort -n -- *32*duration | awk 'NR==1; END{print}')"
 bound64="$(sort -n -- *64*duration | awk 'NR==1; END{print}')"
 
 duration() {
-	if ! diff="$(cat "$1-duration")" || [ -n "${diff##*[!0-9]*}" ]; then
-		echo "$diff"; return
-	fi
-
-	BB=
-	if echo "$2" | grep -q "$diff"; then
-		BB='**'
+	if ! diff="$(cat "$1-duration")" || echo "$diff" | grep -vq '^[0-9]*$' ; then
+		echo "${diff:--}"; return
 	fi
 
 	secs=$((   diff                  % 60))
@@ -29,45 +20,49 @@ duration() {
 	[ "$hrs"  = '0' ] && hrs=
 
 	dur="$(printf '%s%s%02dm:%02ds' "$days${days:+d }" "$hrs${hrs:+h:}" "$mins" "$secs")"
-	echo "$BB${dur#0}$BB"
-}
-version() {
-	case "$1" in
-	master) ver="$(sed  -nE 's|^ARG VERSION=(.*)$|\1|p' Dockerfile)/git" ;;
-	os)     ver="$(grep -oE '(\.?[0-9]*){3}' os-qemu | head -n1)/os"     ;;
-	*)      ver="$1" ;;
-	esac
+	dur="${dur#0}"
 
-	echo "v${ver#v}"
-}
+	if [ -n "$2" ]; then
+		if echo "$2" | grep -q "^$diff$"; then
+			dur="**$dur**"
+		fi
 
-line() { printf '|%-17s|%12s|%12s\n' "$1" "$2" "$3" ;}
-row()  { line " ${1:--} " " ${2:--} " " ${3:--} "   ;}
-result() {
-	row "**$(version "$1")**" \
-		"$(duration "$1-arm32v7" "$bound32")" \
-		"$(duration "$1-arm64v8" "$bound64")"
+		dur="$(printf '%17s' "$dur")"
+	fi
+
+	echo "$dur"
 }
 
-# shellcheck disable=SC2016
-(
-	commit="$(sort -u -- *-commit | head -n1)"
+ver()   { printf '%-21s' "**$1**"          ;}
+dur32() { duration "$1-arm32v7" "$bound32" ;}
+dur64() { duration "$1-arm64v8" "$bound64" ;}
 
-	printf '### Perf check (%s)\n\n' "$APP"
-	printf 'Source: [`%s@%s`](https://github.com/%s/tree/%s)\n' "$REPO" "$(echo "$commit" | cut -c-7)" "$REPO" "$commit"
-	printf 'Trigger: `%s`\n' "$EVENT_NAME"
-	printf 'Baseline: **%s** (no emulation)\n\n' "$(duration metal)"
 
-	row    qemu  arm32v7  arm64v8
-	line   ----  ------:  ------: | tr ' ' -
+commit="$(sort -u -- *-commit | head -n1)"
 
-	result os
-	result master
-	for ver in $(find -- * -name 'v*duration' | cut -d- -f1 | uniq); do
-		result "${ver%%-*}"
-	done
+ver_os="$(grep -oE '(\.?[0-9]*){3}' os-qemu | head -n1)/apt-get"
+ver_git="[$(sed -nE 's|^ARG VERSION=(.*)$|\1|p' ../Dockerfile)/git][src]"
+versions="$(find -- * -name 'v*duration' | cut -d- -f1 | uniq)"
 
-	echo
-) | tee all-stats
+cat <<EOF | tee all-stats
+### Perf check ($APP)
+
+Source: [\`$REPO:$(echo "$commit" | cut -c-7)\`][src]
+Trigger: \`${GITHUB_EVENT_NAME:-unknown}\`
+Baseline: **$(duration metal)** (no emulation)
+
+| qemu version          |           arm32v7 |           arm64v8
+|-----------------------|------------------:|------------------:
+| $(ver "$ver_os"     ) | $(dur32 os      ) | $(dur64 os)
+| $(ver "$ver_git"    ) | $(dur32 master  ) | $(dur64 master)
+$(for v in $versions; do
+echo "| $(ver "$v") | $(dur32 "$v") | $(dur64 "$v")"
+done)
+
+[src]: https://github.com/$REPO/tree/$commit
+EOF
+
+# shellcheck disable=SC2086,SC2048
+[ -x "$(command -v gsed)" ] && sed() { gsed $*; }
 
 echo ::set-env name=RESULTS::"$(sed -z 's/\n/\\n/g' all-stats)"
