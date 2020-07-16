@@ -136,13 +136,15 @@ jobs:
     if: always()
 
     steps:
+      - uses: actions/checkout@v2
+
       - name: Download perf stats
         uses: actions/download-artifact@v1.0.0
         with:
           name: stats
 
       - name: Aggregate results
-        run: simple-qemu/scripts/perf-print.sh
+        run: scripts/perf-print.sh
 
       - uses: actions/github-script@v2
         with:
