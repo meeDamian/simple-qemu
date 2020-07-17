@@ -33,7 +33,7 @@ duration() {
 	echo "$dur"
 }
 
-ver()   { printf '%-21s' "**$1**"          ;}
+ver()   { printf '%-24s' "**v${1#v}**"     ;}
 dur32() { duration "$1-arm32v7" "$bound32" ;}
 dur64() { duration "$1-arm64v8" "$bound64" ;}
 
@@ -41,7 +41,7 @@ dur64() { duration "$1-arm64v8" "$bound64" ;}
 commit="$(sort -u -- *-commit | head -n1)"
 
 ver_os="$(grep -oE '(\.?[0-9]*){3}' os-qemu | head -n1)/apt-get"
-ver_git="[$(sed -nE 's|^ARG VERSION=(.*)$|\1|p' ../Dockerfile)/git][src]"
+ver_git="$(sed -nE 's|^ARG VERSION=(.*)$|\1|p' ../Dockerfile)/[master][src]"
 versions="$(find -- * -name 'v*duration' | cut -d- -f1 | uniq)"
 
 cat <<EOF | tee all-stats
