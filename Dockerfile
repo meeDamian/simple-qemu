@@ -39,17 +39,20 @@ RUN sed -i  -e 's/\s*#.*$//'  -e '/^\s*$/d'  /built-architectures.txt
 RUN printf 'Target architectures to be built: %s\n' "$(cat /built-architectures.txt | tr '\n' ' ')"
 
 # Configure output binaries to be static (no external deps), and only build what's listed in `/built-architectures.txt`
+#   config flags from: https://src.fedoraproject.org/rpms/qemu/blob/master/f/qemu.spec
 RUN ./configure --with-pkgversion="lncm-$VERSION${BUILD:+.b}$BUILD" \
         --target-list=$(awk '{printf s $0 "-linux-user"; s=","}' /built-architectures.txt) \
-        --disable-blobs --disable-iconv --disable-vnc --disable-pie --disable-kvm \
-        --audio-drv-list= \
+        --extra-ldflags="-Wl,--build-id -Wl,-z,relro -Wl,-z,now" \
+        --disable-strip --disable-werror \
+        --without-default-devices --audio-drv-list= \
+        --disable-attr --disable-auth-pam --disable-avx2 --disable-avx512f --disable-blobs --disable-bochs --disable-brlapi --disable-bsd-user --disable-bzip2 --disable-cap-ng --disable-capstone --disable-cloop --disable-cocoa --disable-coroutine-pool --disable-crypto-afalg --disable-curl --disable-curses --disable-debug-info --disable-debug-mutex --disable-debug-tcg --disable-dmg --disable-docs --disable-fdt --disable-gcrypt --disable-glusterfs --disable-gnutls --disable-gtk --disable-guest-agent --disable-guest-agent-msi --disable-hax --disable-hvf --disable-iconv --disable-jemalloc --disable-kvm --disable-libiscsi --disable-libnfs --disable-libpmem --disable-libssh --disable-libusb --disable-libxml2 --disable-linux-aio --disable-linux-io-uring --disable-linux-user --disable-live-block-migration --disable-lzfse --disable-lzo --disable-membarrier --disable-modules --disable-mpath --disable-netmap --disable-nettle --disable-numa --disable-opengl --disable-parallels --disable-pie --disable-pvrdma --disable-qcow1 --disable-qed --disable-qom-cast-debug --disable-rbd --disable-rdma --disable-replication --disable-sdl --disable-sdl-image --disable-seccomp --disable-sheepdog --disable-slirp --disable-smartcard --disable-snappy --disable-sparse --disable-spice --disable-system --disable-tcg --disable-tcmalloc --disable-tools --disable-tpm --disable-usb-redir --disable-user --disable-vde --disable-vdi --disable-vhost-crypto --disable-vhost-kernel --disable-vhost-net --disable-vhost-scsi --disable-vhost-user --disable-vhost-vsock --disable-virglrenderer --disable-virtfs --disable-vnc --disable-vnc-jpeg --disable-vnc-png --disable-vnc-sasl --disable-vte --disable-vvfat --disable-vxhs --disable-whpx --disable-xen --disable-xen-pci-passthrough --disable-xfsctl --disable-zstd \
         --enable-attr \
         --enable-linux-user \
         --enable-tcg \
         --static
 
 # Do the compiling thing
-RUN make -j$(($(nproc) + 1))
+RUN make -j$(($(nproc) + 1)) VL_LDFLAGS=-Wl,--build-id
 
 RUN mkdir /binaries/
 WORKDIR   /binaries/
