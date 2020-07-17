@@ -3,8 +3,8 @@
 cd stats/
 
 # Get only slowest, and fastest durations for each arch
-bound32="$(sort -n -- *32*duration | awk 'NR==1; END{print}')"
-bound64="$(sort -n -- *64*duration | awk 'NR==1; END{print}')"
+min32max="$(sort -n -- *32*duration | awk 'NR==1; END{print}')"
+min64max="$(sort -n -- *64*duration | awk 'NR==1; END{print}')"
 
 duration() {
 	if ! diff="$(cat "$1-duration")" || echo "$diff" | grep -vq '^[0-9]*$' ; then
@@ -33,31 +33,40 @@ duration() {
 	echo "$dur"
 }
 
-ver()   { printf '%-24s' "**v${1#v}**"     ;}
-dur32() { duration "$1-arm32v7" "$bound32" ;}
-dur64() { duration "$1-arm64v8" "$bound64" ;}
+# shellcheck disable=SC2086
+single() { sort -u -- $1 | head -n1; }
+
+version_apt="$(   single    'apt-*-qemu-version')"
+version_master="$(single 'master-*-qemu-version')"
+commit_master="$( single 'master-*-qemu-commit' )"
+commit_app="$(    single        "*-$APP-commit" )"
+
+commit_app_short="$(echo "$commit_app" | cut -c-7)"
 
 
-commit="$(sort -u -- *-commit | head -n1)"
+ver()   { printf '%-24s' "**v${1#v}**${2:+/$2}" ;}
+dur32() { duration "$1-arm32v7" "$min32max"     ;}
+dur64() { duration "$1-arm64v8" "$min64max"     ;}
 
-ver_os="$(grep -oE '(\.?[0-9]*){3}' os-qemu | head -n1)/apt-get"
-ver_git="$(sed -nE 's|^ARG VERSION=(.*)$|\1|p' ../Dockerfile)/[master][src]"
-versions="$(find -- * -name 'v*duration' | cut -d- -f1 | uniq)"
+apt="$(ver "$version_apt" "apt-get")"
+master="$(ver "$version_master" "[master]")"
+versions="$(find -- * -name 'v*duration' | cut -d- -f1 | uniq | tac)"
 
 cat <<EOF | tee all-stats
 ### Perf check ($APP)
 
-Source: [\`$REPO:$(echo "$commit" | cut -c-7)\`][src]
+Source: [\`$REPO:$commit_app_short\`][app]
 Trigger: \`${GITHUB_EVENT_NAME:-unknown}\`
-Baseline: **$(duration metal)** (no emulation)
+Baseline: **$(duration baseline)** (no emulation)
 
 | qemu version             |           arm32v7 |           arm64v8
 |-------------------------:|:-----------------:|:-----------------:
-| $(ver "$ver_os"        ) | $(dur32 os      ) | $(dur64 os)
-| $(ver "$ver_git"       ) | $(dur32 master  ) | $(dur64 master)
+| $apt | $(dur32 apt) | $(dur64 apt)
+| $master | $(dur32 master) | $(dur64 master)
 $(for v in $versions; do
-echo "| $(ver "$v") | $(dur32 "$v") | $(dur64 "$v")"
+	echo "| $(ver "$v") | $(dur32 "$v") | $(dur64 "$v")"
 done)
 
-[src]: https://github.com/$REPO/tree/$commit
+[app]: https://github.com/$REPO/tree/$commit_app
+[master]: https://github.com/$QEMU/tree/$commit_master
 EOF
