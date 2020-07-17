@@ -3,6 +3,7 @@ name: Perf test (Berkeley DB)
 env:
   APP: berkeleydb
   REPO: lncm/docker-berkeleydb
+  BUILD_DIR: berkeleydb/
 
 on:
   push:
@@ -18,7 +19,6 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
       QEMU: meedamian/simple-qemu
-      BUILD_DIR: $APP
 
     strategy:
       fail-fast: false
@@ -115,7 +115,7 @@ jobs:
       - name: Build container
         env:
           ARCH: ${{ matrix.arch }}
-        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$BUILD_DIR/"
+        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$BUILD_DIR"
 
       - name: Make sure binaries can be run
         if: env.SANITY_CHECK
