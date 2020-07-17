@@ -2,7 +2,7 @@ name: Perf test (Berkeley DB)
 
 env:
   APP: berkeleydb
-  REPO: lncm/docker-${{ env.APP }}
+  REPO: lncm/docker-berkeleydb
 
 on:
   push:

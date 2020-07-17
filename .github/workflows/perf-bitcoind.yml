@@ -3,7 +3,7 @@ name: Perf test (Bitcoin Core)
 env:
   APP: bitcoind
   MINOR: '0.20'
-  REPO: lncm/docker-${{ env.APP }}
+  REPO: lncm/docker-bitcoind
 
 on:
   push:
