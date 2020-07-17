@@ -1,13 +1,17 @@
 meedamian/simple-qemu
 =====================
 
-[![lasttag_img]][lasttag_url] [![action_img]][action_img]
-
-[lasttag_url]: https://github.com/meedamian/simple-qemu/releases/latest
-[lasttag_img]: https://img.shields.io/github/v/tag/meeDamian/simple-qemu
+[![action_img]][action_url] [![lasttag_img]][lasttag_url] [![pulls_img]][hub] [![size_img]][hub]
 
 [action_img]: https://github.com/meeDamian/simple-qemu/workflows/Check%20master%20or%20PR/badge.svg
 [action_url]: https://github.com/meeDamian/simple-qemu/actions?query=workflow%3A%22Check+master+or+PR%22
+
+[lasttag_url]: https://github.com/meedamian/simple-qemu/releases/latest
+[lasttag_img]: https://badgen.net/github/tag/meedamian/simple-qemu
+
+[size_img]: https://badgen.net/docker/size/meedamian/simple-qemu/arm64?icon=docker&label=size%20%28arm64%29
+[pulls_img]: https://badgen.net/docker/pulls/meedamian/simple-qemu?icon=docker&label=pulls
+[hub]: https://hub.docker.com/r/meedamian/simple-qemu
 
 This project aims to make cross-compilation, and running programs and images built for a different CPU architecture _simple_.
 
