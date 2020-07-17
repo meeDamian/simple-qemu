@@ -1,8 +1,8 @@
 name: Perf test (Berkeley DB)
 
 env:
-  REPO: lncm/docker-berkeleydb
   APP: berkeleydb
+  REPO: lncm/docker-${{ env.APP }}
 
 on:
   push:
@@ -18,6 +18,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
       QEMU: meedamian/simple-qemu
+      BUILD_DIR: ${{ env.APP }}
 
     strategy:
       fail-fast: false
@@ -48,28 +49,28 @@ jobs:
         with:
           path: simple-qemu
 
-      - name: '[meta] Create VARIANT env var'
+      - name: "[meta] Create VARIANT env var"
         env:
           ARCH: ${{ matrix.arch }}
         run: echo ::set-env name=VARIANT::"${{ matrix.qemu }}${ARCH:+-}$ARCH"
 
 
-      - name: '[prep] Build simple-qemu master'
+      - name: "[prep] Build simple-qemu master"
         if: matrix.qemu == 'master'
         run: docker build --target comprehensive --tag "$QEMU:$VARIANT" simple-qemu/
 
-      - name: '[prep] Install OS's qemu-user-static'
+      - name: "[prep] Install OS's qemu-user-static"
         if: matrix.qemu == 'os'
         run: |
           sudo apt-get update || true
           sudo apt-get install -y qemu-user-static
 
-      - name: '[prep] Pull simple-qemu'
+      - name: "[prep] Pull simple-qemu"
         if: startsWith(matrix.qemu, 'v')
         run: docker pull "$QEMU:$VARIANT"
 
 
-      - name: '[meta] Log start time & git-hash'
+      - name: "[meta] Log start time & git-hash"
         env:
           CHECK_FILE: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
         run: |
@@ -82,7 +83,7 @@ jobs:
           fi
 
 
-      - name: '[qemu] Register OS's qemu-user-static'
+      - name: "[qemu] Register OS's qemu-user-static"
         if: matrix.qemu == 'os'
         run: |
           for arch in arm aarch64; do
@@ -101,7 +102,7 @@ jobs:
               --reset      \
               --persistent yes
 
-      - name: '[qemu] Register simple-qemu'
+      - name: "[qemu] Register simple-qemu"
         if: matrix.qemu != 'os' && matrix.qemu != 'metal'
         run: |
           docker run --rm \
@@ -114,14 +115,14 @@ jobs:
       - name: Build container
         env:
           ARCH: ${{ matrix.arch }}
-        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$APP/"
+        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$BUILD_DIR/"
 
       - name: Make sure binaries can be run
         if: env.SANITY_CHECK
         run: ./"$SANITY_CHECK"
 
 
-      - name: '[meta] Get execution time'
+      - name: "[meta] Get execution time"
         run: |
           NOW="$(date +%s)"
           THEN="$(date -r stat/ +%s)"
