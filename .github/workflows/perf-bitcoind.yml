@@ -19,7 +19,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
       QEMU: meedamian/simple-qemu
-      BUILD_DIR: ${{ env.APP }}/${{ env.MINOR }}
+      BUILD_DIR: $APP/$MINOR
 
     strategy:
       fail-fast: false
