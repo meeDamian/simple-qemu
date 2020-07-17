@@ -7,7 +7,7 @@ env:
 
 on:
   push:
-    branches: [ 'perf' ]
+    branches: [ 'perf', 'slim' ]
   schedule:
     - cron: '2 2 * * 2'
 
@@ -25,6 +25,7 @@ jobs:
       matrix:
         qemu:
           - apt
+          - slim
           - master
           - v5.0.0
           - v4.2.1
@@ -46,7 +47,13 @@ jobs:
           repository: ${{ env.REPO }}
 
       - uses: actions/checkout@v2
+        if: matrix.qemu != 'slim'
         with:
+          path: simple-qemu
+      - uses: actions/checkout@v2
+        if: matrix.qemu == 'slim'
+        with:
+          ref: slim
           path: simple-qemu
 
       - name: "[meta] Create VARIANT env var"
@@ -55,8 +62,8 @@ jobs:
         run: echo ::set-env name=VARIANT::"${{ matrix.qemu }}${ARCH:+-}$ARCH"
 
 
-      - name: "[prep] Build simple-qemu master"
-        if: matrix.qemu == 'master'
+      - name: "[prep] Build simple-qemu"
+        if: matrix.qemu == 'master' || matrix.qemu == 'slim'
         run: docker build --target comprehensive --tag "$QEMU:$VARIANT" simple-qemu/
 
       - name: "[prep] apt-get install qemu-user-static"
