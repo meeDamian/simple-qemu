@@ -52,7 +52,7 @@ Trigger: \`${GITHUB_EVENT_NAME:-unknown}\`
 Baseline: **$(duration metal)** (no emulation)
 
 | qemu version             |           arm32v7 |           arm64v8
-|--------------------------|------------------:|------------------:
+|-------------------------:|:-----------------:|:-----------------:
 | $(ver "$ver_os"        ) | $(dur32 os      ) | $(dur64 os)
 | $(ver "$ver_git"       ) | $(dur32 master  ) | $(dur64 master)
 $(for v in $versions; do
