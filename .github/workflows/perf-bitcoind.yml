@@ -38,12 +38,14 @@ jobs:
           - qemu: baseline
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone app
+        uses: actions/checkout@v2
         with:
           path: ${{ env.APP }}
           repository: ${{ env.REPO }}
 
-      - uses: actions/checkout@v2
+      - name: Clone single-qemu:master
+        uses: actions/checkout@v2
         with:
           path: simple-qemu
 
@@ -53,7 +55,7 @@ jobs:
         run: echo ::set-env name=VARIANT::"${{ matrix.qemu }}${ARCH:+-}$ARCH"
 
 
-      - name: "[prep] Build simple-qemu master"
+      - name: "[prep] Build simple-qemu"
         if: matrix.qemu == 'master'
         run: docker build --target comprehensive --tag "$QEMU:$VARIANT" simple-qemu/
 

@@ -41,16 +41,20 @@ jobs:
           - qemu: baseline
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Clone app
+        uses: actions/checkout@v2
         with:
           path: ${{ env.APP }}
           repository: ${{ env.REPO }}
 
-      - uses: actions/checkout@v2
+      - name: Clone single-qemu:master
+        uses: actions/checkout@v2
         if: matrix.qemu != 'slim'
         with:
           path: simple-qemu
-      - uses: actions/checkout@v2
+
+      - name: Clone single-qemu:slim
+        uses: actions/checkout@v2
         if: matrix.qemu == 'slim'
         with:
           ref: slim
