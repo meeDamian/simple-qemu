@@ -1,0 +1,169 @@
+name: Perf test (Berkeley DB)
+
+env:
+  APP: berkeleydb
+  REPO: lncm/docker-berkeleydb
+  BUILD_DIR: berkeleydb/
+
+on:
+  push:
+    branches: [ 'perf' ]
+  schedule:
+    - cron: '2 2 * * 2'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+
+    env:
+      DOCKER_BUILDKIT: 1
+      QEMU: meedamian/simple-qemu
+
+    strategy:
+      fail-fast: false
+      matrix:
+        qemu:
+          - os
+          - master
+          - v5.0.0
+          - v4.2.1
+          - v4.1.1
+          - v4.0.1
+          - v3.1.1
+
+        arch:
+          - arm32v7
+          - arm64v8
+
+        include:
+          - qemu: metal
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: ${{ env.APP }}
+          repository: ${{ env.REPO }}
+
+      - uses: actions/checkout@v2
+        with:
+          path: simple-qemu
+
+      - name: "[meta] Create VARIANT env var"
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: echo ::set-env name=VARIANT::"${{ matrix.qemu }}${ARCH:+-}$ARCH"
+
+
+      - name: "[prep] Build simple-qemu master"
+        if: matrix.qemu == 'master'
+        run: docker build --target comprehensive --tag "$QEMU:$VARIANT" simple-qemu/
+
+      - name: "[prep] Install OS's qemu-user-static"
+        if: matrix.qemu == 'os'
+        run: |
+          sudo apt-get update || true
+          sudo apt-get install -y qemu-user-static
+
+      - name: "[prep] Pull simple-qemu"
+        if: startsWith(matrix.qemu, 'v')
+        run: docker pull "$QEMU:$VARIANT"
+
+
+      - name: "[meta] Log start time & git-hash"
+        env:
+          CHECK_FILE: simple-qemu/scripts/perf-sanity-${{ env.APP }}.sh
+        run: |
+          mkdir -p stat
+
+          (cd "$APP"; git rev-parse HEAD) | tee "stat/$VARIANT-commit"
+
+          if [ -f "$CHECK_FILE" ]; then
+            echo ::set-env name=SANITY_CHECK::"$CHECK_FILE"
+          fi
+
+
+      - name: "[qemu] Register OS's qemu-user-static"
+        if: matrix.qemu == 'os'
+        run: |
+          for arch in arm aarch64; do
+            "qemu-$arch-static" -version | sed -nE 's|qemu-([^ ]+) version ((\.?[0-9]*)+).*|\2 \1|p' | tee -a stat/os-qemu
+          done
+
+          volume() {
+            printf '%s:%s'  "/usr/bin/qemu-$1-static"  "/usr/local/bin/qemu-$1-static"
+          }
+
+          docker run --rm  \
+            --privileged   \
+            --volume "$(volume aarch64):ro" \
+            --volume "$(volume arm):ro"     \
+            "$QEMU:enable" \
+              --reset      \
+              --persistent yes
+
+      - name: "[qemu] Register simple-qemu"
+        if: matrix.qemu != 'os' && matrix.qemu != 'metal'
+        run: |
+          docker run --rm \
+            --privileged  \
+            "$QEMU:$VARIANT" \
+              --reset        \
+              --persistent yes
+
+
+      - name: Build container
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: docker build ${ARCH:+--build-arg="ARCH=$ARCH"}  --tag="$APP"  "$BUILD_DIR"
+
+      - name: Make sure binaries can be run
+        if: env.SANITY_CHECK
+        run: ./"$SANITY_CHECK"
+
+
+      - name: "[meta] Get execution time"
+        run: |
+          NOW="$(date +%s)"
+          THEN="$(date -r stat/ +%s)"
+          echo "$((NOW - THEN))" | tee "stat/$VARIANT-duration"
+
+      - name: Handle if failure
+        if: failure()
+        run: mkdir -p stat && echo FAIL > "stat/$VARIANT-duration"
+
+      - name: Save execution time as an artifact
+        uses: actions/upload-artifact@v1.0.0
+        if: always()
+        with:
+          name: stats
+          path: stat/
+
+  comment:
+    name: Report result
+    runs-on: ubuntu-18.04
+
+    needs: build
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download perf stats
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: stats
+
+      - name: Aggregate results
+        run: scripts/perf-print.sh
+
+      - uses: actions/github-script@v2
+        with:
+          github-token: ${{ secrets.GH_TOKEN_NOEXPIRE }}
+          script: |
+            github.issues.createComment({
+              issue_number: 15,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: require('fs').readFileSync('stats/all-stats', 'utf8')
+            })
