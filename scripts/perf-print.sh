@@ -51,18 +51,13 @@ Source: [\`$REPO:$(echo "$commit" | cut -c-7)\`][src]
 Trigger: \`${GITHUB_EVENT_NAME:-unknown}\`
 Baseline: **$(duration metal)** (no emulation)
 
-| qemu version          |           arm32v7 |           arm64v8
-|-----------------------|------------------:|------------------:
-| $(ver "$ver_os"     ) | $(dur32 os      ) | $(dur64 os)
-| $(ver "$ver_git"    ) | $(dur32 master  ) | $(dur64 master)
+| qemu version             |           arm32v7 |           arm64v8
+|--------------------------|------------------:|------------------:
+| $(ver "$ver_os"        ) | $(dur32 os      ) | $(dur64 os)
+| $(ver "$ver_git"       ) | $(dur32 master  ) | $(dur64 master)
 $(for v in $versions; do
 echo "| $(ver "$v") | $(dur32 "$v") | $(dur64 "$v")"
 done)
 
 [src]: https://github.com/$REPO/tree/$commit
 EOF
-
-# shellcheck disable=SC2086,SC2048
-[ -x "$(command -v gsed)" ] && sed() { gsed $*; }
-
-echo ::set-env name=RESULTS::"$(cat all-stats)"
