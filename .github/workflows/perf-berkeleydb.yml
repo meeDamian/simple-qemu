@@ -94,7 +94,7 @@ jobs:
           fi
 
       - name: "[meta] Log commit & version of built simple-qemu"
-        if: matrix.qemu == 'master'
+        if: matrix.qemu == 'master' || matrix.qemu == 'slim'
         run: |
           (cd simple-qemu; git rev-parse HEAD)                       | tee "stat/$VARIANT-qemu-commit"
           sed -nE 's|^ARG VERSION=(.*)$|\1|p' simple-qemu/Dockerfile | tee "stat/$VARIANT-qemu-version"
