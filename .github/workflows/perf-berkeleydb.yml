@@ -9,7 +9,7 @@ on:
   push:
     branches: [ 'perf', 'slim' ]
   schedule:
-    - cron: '2 2 * * 2'
+    - cron: '2 2 * * *'
 
 jobs:
   build:
