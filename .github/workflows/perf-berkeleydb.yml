@@ -8,6 +8,8 @@ env:
 on:
   push:
     branches: [ 'perf' ]
+  paths:
+    - '.github/workflows/perf-berkeleydb.yml'
   schedule:
     - cron: '3 3 */3 * *'
 
