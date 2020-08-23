@@ -8,8 +8,8 @@ env:
 on:
   push:
     branches: [ 'perf' ]
-  paths:
-    - '.github/workflows/perf-bitcoind.yml'
+    paths:
+      - '.github/workflows/perf-bitcoind.yml'
   schedule:
     - cron: '4 4 * * 4'
 
