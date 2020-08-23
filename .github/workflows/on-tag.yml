@@ -129,6 +129,11 @@ jobs:
 #          - riscv32 # Nothing to test it against…
 
     steps:
+      - name: Setup environment
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo ::set-env name=VERSION::"${TAG%+*}"
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v1.0.0
         with:
@@ -138,7 +143,7 @@ jobs:
         run: sha256sum docker-images/*
 
       - name: Load relevant image locally
-        run: docker load -i "docker-images/$APP-${{ matrix.arch }}.tgz"
+        run: docker load -i "docker-images/$APP-$VERSION-${{ matrix.arch }}.tgz"
 
       - name: Enable emulation
         run: docker run --rm --privileged "$APP:${{ matrix.arch }}" -p yes
