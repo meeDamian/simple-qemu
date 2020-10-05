@@ -28,9 +28,9 @@ Currently, the only **host** architecture supported is `amd64` (AKA `x86_64`), w
 
 There are 3 distinct categories of images below:
 
-1. An image containing binaries for [all architectures].  Tagged with a version alone, ex: `:v5.0.0`, or `:latest`.
-1. An enable-emulation-only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v5.0.0-enable`, or `:enable`.
-1. A single-architecture image.  These images contain a single architecture plus a script to enable emulation.  Tagged with the name of the architecture, ex: `v5.0.0-arm`, or `aarch64`.
+1. An image containing binaries for [all architectures].  Tagged with a version alone, ex: `:v5.1.0`, or `:latest`.
+1. An enable-emulation-only image.  It contains no `qemu` binaries, but can be used to enable emulation for use with your own `qemu` binary.  Tagged with the keyword `enable`, ex: `:v5.1.0-enable`, or `:enable`.
+1. A single-architecture image.  These images contain a single architecture plus a script to enable emulation.  Tagged with the name of the architecture, ex: `v5.1.0-arm`, or `aarch64`.
 
 [all architectures]: ./built-architectures.txt
 
