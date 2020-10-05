@@ -41,13 +41,21 @@ Simple tags
 
 For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](https://hub.docker.com/r/meedamian/simple-qemu/tags)
 
-### v5.0.0
-* `v5.0.0`, `v5.0`, `v5`, `latest`
-* `v5.0.0-arm`, `v5.0-arm`, `v5-arm`, `arm` (or: `arm32v7`)
-* `v5.0.0-aarch64`, `v5.0-aarch64`, `v5-aarch64`, `aarch64` (or: `arm64v8` & `arm64`)
-* `v5.0.0-riscv32`, `v5.0-riscv32`, `v5-riscv32`, `riscv32`
-* `v5.0.0-riscv64`, `v5.0-riscv64`, `v5-riscv64`, `riscv64`
-* `v5.0.0-enable`, `v5.0-enable`, `v5-enable`, `enable`
+### v5.1.0
+* `v5.1.0`        , `v5.1`        , `v5`        , `latest`
+* `v5.1.0-arm`    , `v5.1-arm`    , `v5-arm`    , `arm`     (or: `arm32v7`)
+* `v5.1.0-aarch64`, `v5.1-aarch64`, `v5-aarch64`, `aarch64` (or: `arm64v8` & `arm64`)
+* `v5.1.0-riscv32`, `v5.1-riscv32`, `v5-riscv32`, `riscv32`
+* `v5.1.0-riscv64`, `v5.1-riscv64`, `v5-riscv64`, `riscv64`
+* `v5.1.0-enable` , `v5.1-enable` , `v5-enable` , `enable`
+
+### v5.0.1
+* `v5.0.1`        , `v5.0`
+* `v5.0.1-arm`    , `v5.0-arm`     (or: `-arm32v7`)
+* `v5.0.1-aarch64`, `v5.0-aarch64` (or: `-arm64v8` & `-arm64`)
+* `v5.0.1-riscv32`, `v5.0-riscv32`
+* `v5.0.1-riscv64`, `v5.0-riscv64`
+* `v5.0.1-enable` , `v5.0-enable`
 
 ### v4.2.1
 * `v4.2.1`, `v4.2`, `v4`
@@ -84,6 +92,14 @@ For a complete list of available tags see: [`r/meedamian/simple-qemu/tags`](http
 
 <details>
     <summary>Older versions here</summary>
+
+### v5.0.0
+* `v5.0.0`
+* `v5.0.0-arm`     (or: `-arm32v7`)
+* `v5.0.0-aarch64` (or: `-arm64v8` & `-arm64`)
+* `v5.0.0-riscv32`
+* `v5.0.0-riscv64`
+* `v5.0.0-enable`
 
 ### v4.2.0
 * `v4.2.0`
