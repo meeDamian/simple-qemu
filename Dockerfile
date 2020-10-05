@@ -3,7 +3,7 @@
 #   2. `single`         - A single `qemu` binary (can emulate one CPU-arch only)
 #   3. `comprehensive`  - Contains `qemu` binaries for all built architectures
 
-ARG VERSION=v5.1.0
+ARG VERSION=v5.0.1
 
 
 FROM debian:buster-slim AS builder
